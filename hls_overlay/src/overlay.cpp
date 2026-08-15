@@ -1,9 +1,133 @@
 #include "overlay.hpp"
 
-void pattern_overlay(fifo<axis_data64>& pin, fifo<axis_data8>& pout,
+void write_params(fifo<axis_data64>& ins) {
+    static constexpr int param_counts[] = {
+        // YuNetBackbone stage0
+        // Conv_head
+        16 * 9 + 16 * 4,
+        // Conv_head ConvDPUnit
+        16 * 1 * 4 + 16 * 4,
+        16 * 1 + 16 * 4,
+        // YuNetBackbone stage1
+        // YuNetBackbone Conv4layerBlock 1
+        16 * 1 + 16 * 4,
+        16 * 1 + 16 * 4,
+        // YuNetBackbone Conv4layerBlock 2
+        64 * 1 + 64 * 4,
+        64 * 1 + 64 * 4,
+        // YuNetBackbone stage2
+        // YuNetBackbone Conv4layerBlock 1
+        64 * 1 * 4 + 64 * 4,
+        64 * 1 + 64 * 4,
+        // YuNetBackbone Conv4layerBlock 2
+        64 * 1 * 4 + 64 * 4,
+        64 * 1 + 64 * 4,
+        // YuNetBackbone stage3
+        // YuNetBackbone Conv4layerBlock 1
+        64 * 1 * 4 + 64 * 4,
+        64 * 1 + 64 * 4,
+        // YuNetBackbone Conv4layerBlock 2
+        64 * 1 * 4 + 64 * 4,
+        64 * 1 + 64 * 4,
+        // YuNetBackbone stage4
+        // YuNetBackbone Conv4layerBlock 1
+        64 * 1 * 4 + 64 * 4,
+        64 * 1 + 64 * 4,
+        // YuNetBackbone Conv4layerBlock 2
+        64 * 1 * 4 + 64 * 4,
+        64 * 1 + 64 * 4,
+        // YuNetBackbone stage5
+        // YuNetBackbone Conv4layerBlock 1
+        64 * 1 * 4 + 64 * 4,
+        64 * 1 + 64 * 4,
+        // YuNetBackbone Conv4layerBlock 2
+        64 * 1 * 4 + 64 * 4,
+        64 * 1 + 64 * 4,
+
+        // TFPN stride32
+        // TFPN ConvDPUnit
+        64 * 1 * 4 + 64 * 4,
+        64 * 1 + 64 * 4,
+        // TFPN stride16
+        // TFPN ConvDPUnit
+        64 * 1 * 4 + 64 * 4,
+        64 * 1 + 64 * 4,
+        // TFPN stride8
+        // TFPN ConvDPUnit
+        64 * 1 * 4 + 64 * 4,
+        64 * 1 + 64 * 4,
+        // YuNet_Head stride8
+        // YuNet_Head shared ConvDPUnit
+        64 * 1 * 4 + 64 * 4,
+        64 * 1 + 64 * 4,
+        // YuNet_Head stride16
+        // YuNet_Head shared ConvDPUnit
+        64 * 1 * 4 + 64 * 4,
+        64 * 1 + 64 * 4,
+        // YuNet_Head stride32
+        // YuNet_Head shared ConvDPUnit
+        64 * 1 * 4 + 64 * 4,
+        64 * 1 + 64 * 4,
+
+        // YuNet_Head cls ConvDPUnit
+        // YuNet_Head stride8
+        1 * 1 * 4 + 1 * 4,
+        1 * 1 + 1 * 4,
+        // YuNet_Head stride16
+        1 * 1 * 4 + 1 * 4,
+        1 * 1 + 1 * 4,
+        // YuNet_Head stride32
+        1 * 1 * 4 + 1 * 4,
+        1 * 1 + 1 * 4,
+
+        // YuNet_Head bbox ConvDPUnit
+        // YuNet_Head stride8
+        4 * 1 * 4 + 4 * 4,
+        4 * 1 + 4 * 4,
+        // YuNet_Head stride16
+        4 * 1 * 4 + 4 * 4,
+        4 * 1 + 4 * 4,
+        // YuNet_Head stride32
+        4 * 1 * 4 + 4 * 4,
+        4 * 1 + 4 * 4,
+
+        // YuNet_Head obj ConvDPUnit
+        // YuNet_Head stride8
+        1 * 1 * 4 + 1 * 4,
+        1 * 1 + 1 * 4,
+        // YuNet_Head stride16
+        1 * 1 * 4 + 1 * 4,
+        1 * 1 + 1 * 4,
+        // YuNet_Head stride32
+        1 * 1 * 4 + 1 * 4,
+        1 * 1 + 1 * 4,
+
+        // YuNet_Head kps ConvDPUnit
+        // YuNet_Head stride8
+        10 * 1 * 4 + 10 * 4,
+        10 * 1 + 10 * 4,
+        // YuNet_Head stride16
+        10 * 1 * 4 + 10 * 4,
+        10 * 1 + 10 * 4,
+        // YuNet_Head stride32
+        10 * 1 * 4 + 10 * 4,
+        10 * 1 + 10 * 4
+    };
+    
+	axis_data64 pkt;
+    int ptr = 0;
+    for (int j = 0; j < sizeof(param_counts) / sizeof(param_counts[0]); j++) {
+        for (int i = 0; i < param_counts[j]; i++) {
+            pkt.data = 0;
+            pkt.last = (i == param_counts[j] - 1);
+            ins.write(pkt);
+        }
+    }
+}
+
+void pattern_overlay(fifo<axis_data8>& pout,
     fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs)
 {
-#pragma HLS INTERFACE axis port=pin
 #pragma HLS INTERFACE axis port=pout
 #pragma HLS INTERFACE axis port=yunet_ins
 #pragma HLS INTERFACE axis port=yunet_outs
@@ -12,16 +136,13 @@ void pattern_overlay(fifo<axis_data64>& pin, fifo<axis_data8>& pout,
     static Detect detects[MAX_DETECTS];
     static ap_uint<8> detect_count = 0;
 
-    // write_params(pin, yunet_ins);
     axis_data64 ival;
     for (int i = 0; i < 160 * 160; i++) {
-        ival = pin.read();
+        ival.data = 0;
+        ival.last = (i == 160 * 160 - 1);
         yunet_ins.write(ival);
     }
-    for (int i = 0; i < 13440; i++) {
-        ival = pin.read();
-        yunet_ins.write(ival);
-    }
+    write_params(yunet_ins);
 
     // read_detects(yunet_outs, detects, detect_count);
     axis_data8 oval;

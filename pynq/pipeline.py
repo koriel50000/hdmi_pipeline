@@ -446,7 +446,7 @@ def main():
 
     overlay.register_map.CTRL.AP_START = 1
 
-    yunet(images)
+    print('yunet(images)')
     size = recv_output(1)
     print('size=', size)
     bboxes = []

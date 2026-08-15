@@ -29,6 +29,6 @@ template <typename T>
 using fifo = hls::stream<T>;
 
 extern "C" {
-void pattern_overlay(fifo<axis_data64>& pin, fifo<axis_data8>& pout,
+void pattern_overlay(fifo<axis_data8>& pout,
     fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs);
 }
