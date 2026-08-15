@@ -444,7 +444,7 @@ def decode_bbox_kps(detects):
 def main():
     images, img = jpg_to_rgb('../data/largest_selfie_160x160.jpg')
 
-    sender.register_map.CTRL.AP_START = 1
+    overlay.register_map.CTRL.AP_START = 1
 
     yunet(images)
     size = recv_output(1)
@@ -459,7 +459,7 @@ def main():
         bboxes.append(bbox)
         kps_list.append(kps)
 
-    while sender.register_map.CTRL.AP_DONE == 0:
+    while overlay.register_map.CTRL.AP_DONE == 0:
         pass
 
     draw_bboxes(img, size, bboxes, kps_list, "output.jpg")
