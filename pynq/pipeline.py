@@ -13,7 +13,8 @@ from image import *
 from params import *
 
 base = Overlay("./design_1.bit")
-dma = base.axi_dma_0 # AXI DMA を操作するハンドラ
+overlay = base.pattern_overlay_0
+dma = base.axi_dma_0
 
 t0 = time.time()
 
@@ -443,6 +444,8 @@ def decode_bbox_kps(detects):
 def main():
     images, img = jpg_to_rgb('../data/largest_selfie_160x160.jpg')
 
+    sender.register_map.CTRL.AP_START = 1
+
     yunet(images)
     size = recv_output(1)
     print('size=', size)
@@ -455,6 +458,9 @@ def main():
         print('kps=', kps)
         bboxes.append(bbox)
         kps_list.append(kps)
+
+    while sender.register_map.CTRL.AP_DONE == 0:
+        pass
 
     draw_bboxes(img, size, bboxes, kps_list, "output.jpg")
 
