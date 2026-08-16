@@ -157,13 +157,14 @@ void pattern_overlay(fifo<axis_data8>& pout,
     axis_data8 oval;
     oval = yunet_outs.read();
     int count = 1;
-    oval.data = params_size / 256;
+    // oval.data = params_size / 256;
     oval.last = 1;
     pout.write(oval);
     for (int i = 0; i < MAX_DETECTS; i++) {
         if (i < count) {
+            ap_uint<64> v = params[0];
             for (int j = 0; j < 16; j++) {
-                oval.data = params[j]; //yunet_outs.read();
+                oval.data = (v >> (8 * j)) & 0xff; //yunet_outs.read();
                 oval.last = (j == 16 - 1);
                 pout.write(oval);
             }

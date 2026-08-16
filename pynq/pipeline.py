@@ -12,7 +12,7 @@ import random
 from params import *
 
 base = Overlay("./design_1.bit")
-overlay = base.pattern_overlay_0
+pattern_overlay = base.pattern_overlay_0
 dma = base.axi_dma_0
 
 outbuf = allocate(shape=(16,), dtype=np.uint8)
@@ -234,10 +234,13 @@ def main():
 
     params = allocate(shape=(param_size,), dtype=np.uint64)
     params[:] = np.array(param_list, dtype=np.uint64)
+    params.flush()
 
-    overlay.params = params.physical_address
-    overlay.params_size = param_size
-    overlay.register_map.CTRL.AP_START = 1
+    print('addr=', hex(params.physical_address))
+    pattern_overlay.register_map.params = params.physical_address
+    print('addr=', hex(pattern_overlay.register_map.params))
+    pattern_overlay.register_map.params_size = param_size
+    pattern_overlay.register_map.CTRL.AP_START = 1
 
     print('yunet(images)')
     size = recv_output(1)
@@ -253,7 +256,7 @@ def main():
         bboxes.append(bbox)
         kps_list.append(kps)
 
-    while overlay.register_map.CTRL.AP_DONE == 0:
+    while pattern_overlay.register_map.CTRL.AP_DONE == 0:
         pass
 
 
