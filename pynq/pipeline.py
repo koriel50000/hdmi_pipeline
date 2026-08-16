@@ -242,7 +242,7 @@ def main():
     print('yunet(images)')
     size = recv_output(1)
     print('size=', size)
-    size = 0
+    size = 1
     bboxes = []
     kps_list = []
     for i in range(size):
