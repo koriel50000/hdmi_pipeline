@@ -87,7 +87,7 @@ def draw_bboxes(img, size, bboxes, kps_list, save_path="output.jpg"):
     print("saved:", save_path)
 
 
-def create_params():
+def create_param_list():
     names = [
     # YuNetBackbone stage0
     # Conv_head
