@@ -19,16 +19,6 @@ outbuf = allocate(shape=(16,), dtype=np.uint8)
 
 t0 = time.time()
 
-def send_params(weight, wisize, threshold, thrsize):
-    buf = list(weight)
-    buf.extend(threshold)
-    size = wisize + thrsize
-    assert len(buf) == size, "size mismatch"
-    inbuf[:size] = np.array(buf, dtype=np.uint64) 
-    dma.sendchannel.transfer(inbuf[:size])
-    dma.sendchannel.wait()
-
-
 def recv_output(size):
     dma.recvchannel.transfer(outbuf[:size])
     dma.recvchannel.wait()
@@ -39,54 +29,6 @@ def recv_output(size):
         return vals
     # for i in range(size):
     #     assert outbuf[i] == output[i], f"Mismatch at index {i}: outbuf={outbuf[i]}, expected={output[i]}"
-
-
-def jpg_to_rgb(path, do_crop=False):
-    img = Image.open(path).convert("RGB")
-    W, H = img.size
-
-    x = random.randint(0, W - 160) if do_crop else 0
-    y = random.randint(0, H - 160) if do_crop else 0
-    crop = img.crop((x, y, x + 160, y + 160))
-    arr = np.array(crop, dtype=np.uint8)
-
-    out = []
-    for y in range(160):
-        for x in range(160):
-            r, g, b = arr[y, x]
-            r4 = r >> 5
-            g4 = g >> 5
-            b4 = b >> 5
-            out.append((r4 << 8) | (g4 << 4) | b4)
-
-    return out, crop
-
-
-def draw_bboxes(img, size, bboxes, kps_list, save_path="output.jpg"):
-    draw = ImageDraw.Draw(img)
-
-    kps_colors = [
-        (255, 0, 0),    # 左目: 赤
-        (255, 0, 0),    # 右目: 赤
-        (255, 255, 0),  # 鼻: 黄
-        (0, 255, 255),  # 左口角: 水色
-        (0, 255, 255),  # 右口角: 水色
-    ]
-
-    for i in range(size):
-        x1, y1, x2, y2, score = bboxes[i]
-        draw.rectangle((x1, y1, x2, y2), outline="lime", width=2)
-        # draw.text((x1, y1), f"{score:.2f}", fill="lime")
-
-        kps = kps_list[i]  # (10,)
-        for j in range(5):
-            px = kps[2*j]
-            py = kps[2*j + 1]
-            color = kps_colors[j]
-            draw.ellipse((px - 2, py - 2, px + 2, py + 2), color, color)
-
-    img.save(save_path)
-    print("saved:", save_path)
 
 
 def create_param_list():
@@ -286,10 +228,9 @@ def decode_bbox_kps(detects):
 
 
 def main():
-    images, img = jpg_to_rgb('../data/largest_selfie_160x160.jpg')
-
     param_list = create_param_list()
     param_size = len(param_list)
+    print('param_size=', param_size)
 
     params = allocate(shape=(param_size,), dtype=np.uint64)
     params[:] = np.array(param_list, dtype=np.uint64)
@@ -301,6 +242,7 @@ def main():
     print('yunet(images)')
     size = recv_output(1)
     print('size=', size)
+    size = 0
     bboxes = []
     kps_list = []
     for i in range(size):
@@ -313,8 +255,6 @@ def main():
 
     while overlay.register_map.CTRL.AP_DONE == 0:
         pass
-
-    draw_bboxes(img, size, bboxes, kps_list, "output.jpg")
 
 
 if __name__ == "__main__":
