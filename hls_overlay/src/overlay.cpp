@@ -6,7 +6,7 @@ void write_params(fifo<axis_data64>& ins) {
         // Conv_head
         16 * 9 + 16 * 4,
         // Conv_head ConvDPUnit
-        16 * 1 * 4 + 16 * 4,
+        16 * 1 + 16 * 4,
         16 * 1 + 16 * 4,
         // YuNetBackbone stage1
         // YuNetBackbone Conv4layerBlock 1
@@ -117,6 +117,7 @@ void write_params(fifo<axis_data64>& ins) {
 	axis_data64 pkt;
     int ptr = 0;
     for (int j = 0; j < sizeof(param_counts) / sizeof(param_counts[0]); j++) {
+        printf("len=%d\n", param_counts[j]);
         for (int i = 0; i < param_counts[j]; i++) {
             pkt.data = 0;
             pkt.last = (i == param_counts[j] - 1);
@@ -137,10 +138,12 @@ void pattern_overlay(fifo<axis_data8>& pout,
     static ap_uint<8> detect_count = 0;
 
     axis_data64 ival;
-    for (int i = 0; i < 160 * 160; i++) {
-        ival.data = 0;
-        ival.last = (i == 160 * 160 - 1);
-        yunet_ins.write(ival);
+    for (int j = 0; j < 160; j += 20) {
+        for (int i = 0; i < 160 * 20; i++) {
+            ival.data = 0;
+            ival.last = (i == 160 * 20 - 1);
+            yunet_ins.write(ival);
+        }
     }
     write_params(yunet_ins);
 
@@ -148,11 +151,13 @@ void pattern_overlay(fifo<axis_data8>& pout,
     axis_data8 oval;
     oval = yunet_outs.read();
     int count = oval.data;
+    oval.last = 1;
     pout.write(oval);
     for (int i = 0; i < MAX_DETECTS; i++) {
         if (i < count) {
             for (int j = 0; j < 16; j++) {
                 oval = yunet_outs.read();
+                oval.last = (j == 16 - 1);
                 pout.write(oval);
             }
         }
