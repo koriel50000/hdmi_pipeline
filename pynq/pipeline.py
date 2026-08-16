@@ -15,6 +15,8 @@ base = Overlay("./design_1.bit")
 overlay = base.pattern_overlay_0
 dma = base.axi_dma_0
 
+outbuf = allocate(shape=(16,), dtype=np.uint8)
+
 t0 = time.time()
 
 def send_params(weight, wisize, threshold, thrsize):
@@ -289,7 +291,7 @@ def main():
     param_list = create_param_list()
     param_size = len(param_list)
 
-    params = pynq.allocate(shape=(param_size,), dtype=np.uint64)
+    params = allocate(shape=(param_size,), dtype=np.uint64)
     params[:] = np.array(param_list, dtype=np.uint64)
 
     overlay.params = params.physical_address
