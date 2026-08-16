@@ -30,5 +30,6 @@ using fifo = hls::stream<T>;
 
 extern "C" {
 void pattern_overlay(fifo<axis_data8>& pout,
-    fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs);
+    fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
+    ap_uint<64>* params, ap_uint<32> params_size);
 }

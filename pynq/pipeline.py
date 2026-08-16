@@ -9,7 +9,6 @@ from PIL import Image, ImageDraw
 import time
 import random
 
-from image import *
 from params import *
 
 base = Overlay("./design_1.bit")
@@ -17,18 +16,6 @@ overlay = base.pattern_overlay_0
 dma = base.axi_dma_0
 
 t0 = time.time()
-
-inbuf = allocate(shape=(160*160,), dtype=np.uint64)
-outbuf = allocate(shape=(16,), dtype=np.uint8)
-
-
-def send_images(images, size):
-    assert len(images) == size, "size mismatch"
-    inbuf[:] = np.array(images, dtype=np.uint64)
-    for base in range(0, size, 160*20):
-        dma.sendchannel.transfer(inbuf[base:base+160*20])
-        dma.sendchannel.wait()
-
 
 def send_params(weight, wisize, threshold, thrsize):
     buf = list(weight)
@@ -100,335 +87,190 @@ def draw_bboxes(img, size, bboxes, kps_list, save_path="output.jpg"):
     print("saved:", save_path)
 
 
-# ---------------------------------------------------------
-# メイン処理
-# ---------------------------------------------------------
-def yunet(images):
-    # torch.Size([1, 3, 160, 160])
-    print("send_images: images")
-    send_images(images, 160 * 160)
-
+def create_params():
+    names = [
     # YuNetBackbone stage0
     # Conv_head
-    print("send_params: backbone_model0_conv1_weight")
-    send_params(
-        backbone_model0_conv1_weight, 16 * 9,           # torch.Size([16, 3, 3, 3])
-        backbone_model0_relu1_threshold, 16 * 4 # torch.Size([16, 7])
-    )
+        'backbone_model0_conv1_weight',
+        'backbone_model0_relu1_threshold',
     # Conv_head ConvDPUnit
-    print("send_params: backbone_model0_conv2_conv1_weight")
-    send_params(
-        backbone_model0_conv2_conv1_weight, 16 * 1,             # torch.Size([16, 1, 1, 16])
-        backbone_model0_conv2_quant1_threshold, 16 * 4  # torch.Size([16, 14])
-    )
-    send_params(
-        backbone_model0_conv2_conv2_weight, 16 * 1,         # torch.Size([16, 1, 1, 9])
-        backbone_model0_conv2_relu2_threshold, 16 * 4   # torch.Size([16, 7])
-    )
+        'backbone_model0_conv2_conv1_weight',
+        'backbone_model0_conv2_quant1_threshold',
+        'backbone_model0_conv2_conv2_weight',
+        'backbone_model0_conv2_relu2_threshold',
 
     # YuNetBackbone stage1
     # YuNetBackbone Conv4layerBlock 1
-    print("send_params: backbone_model1_conv1_conv1_weight")
-    send_params(
-        backbone_model1_conv1_conv1_weight, 16 * 1,             # torch.Size([16, 1, 1, 16])
-        backbone_model1_conv1_quant1_threshold, 16 * 4  # torch.Size([16, 14])
-    )
-    send_params(
-        backbone_model1_conv1_conv2_weight, 16 * 1,         # torch.Size([16, 1, 1, 9])
-        backbone_model1_conv1_relu2_threshold, 16 * 4   # torch.Size([16, 7])
-    )
+        'backbone_model1_conv1_conv1_weight',
+        'backbone_model1_conv1_quant1_threshold',
+        'backbone_model1_conv1_conv2_weight',
+        'backbone_model1_conv1_relu2_threshold',
     # YuNetBackbone Conv4layerBlock 2
-    send_params(
-        backbone_model1_conv2_conv1_weight, 64 * 1,             # torch.Size([64, 1, 1, 16])
-        backbone_model1_conv2_quant1_threshold, 64 * 4  # torch.Size([64, 14])
-    )
-    send_params(
-        backbone_model1_conv2_conv2_weight, 64 * 1,         # torch.Size([16, 1, 1, 9])
-        backbone_model1_conv2_relu2_threshold, 64 * 4   # torch.Size([64, 7])
-    )
+        'backbone_model1_conv2_conv1_weight',
+        'backbone_model1_conv2_quant1_threshold',
+        'backbone_model1_conv2_conv2_weight',
+        'backbone_model1_conv2_relu2_threshold',
 
     # YuNetBackbone stage2
     # YuNetBackbone Conv4layerBlock 1
-    print("send_params: backbone_model2_conv1_conv1_weight")
-    send_params(
-        backbone_model2_conv1_conv1_weight, 64 * 1*4,           # torch.Size([64, 1, 1, 64])
-        backbone_model2_conv1_quant1_threshold, 64 * 4  # torch.Size([64, 14])
-    )
-    send_params(
-        backbone_model2_conv1_conv2_weight, 64 * 1,         # torch.Size([64, 1, 1, 9])
-        backbone_model2_conv1_relu2_threshold, 64 * 4   # torch.Size([64, 7])
-    )
+        'backbone_model2_conv1_conv1_weight',
+        'backbone_model2_conv1_quant1_threshold',
+        'backbone_model2_conv1_conv2_weight',
+        'backbone_model2_conv1_relu2_threshold',
     # YuNetBackbone Conv4layerBlock 2
-    send_params(
-        backbone_model2_conv2_conv1_weight, 64 * 1*4,           # torch.Size([64, 1, 1, 64])
-        backbone_model2_conv2_quant1_threshold, 64 * 4  # torch.Size([64, 14])
-    )
-    send_params(
-        backbone_model2_conv2_conv2_weight, 64 * 1,         # torch.Size([64, 1, 1, 9])
-        backbone_model2_conv2_relu2_threshold, 64 * 4   # torch.Size([64, 7])
-    )
+        'backbone_model2_conv2_conv1_weight',
+        'backbone_model2_conv2_quant1_threshold',
+        'backbone_model2_conv2_conv2_weight',
+        'backbone_model2_conv2_relu2_threshold',
 
     # YuNetBackbone stage3
     # YuNetBackbone Conv4layerBlock 1
-    print("send_params: backbone_model3_conv1_conv1_weight")
-    send_params(
-        backbone_model3_conv1_conv1_weight, 64 * 1*4,           # torch.Size([64, 1, 1, 64])
-        backbone_model3_conv1_quant1_threshold, 64 * 4  # torch.Size([64, 14])
-    )
-    send_params(
-        backbone_model3_conv1_conv2_weight, 64 * 1,         # torch.Size([64, 1, 1, 9])
-        backbone_model3_conv1_relu2_threshold, 64 * 4   # torch.Size([64, 7])
-    )
+        'backbone_model3_conv1_conv1_weight',
+        'backbone_model3_conv1_quant1_threshold',
+        'backbone_model3_conv1_conv2_weight',
+        'backbone_model3_conv1_relu2_threshold',
     # YuNetBackbone Conv4layerBlock 2
-    send_params(
-        backbone_model3_conv2_conv1_weight, 64 * 1*4,           # torch.Size([64, 1, 1, 64])
-        backbone_model3_conv2_quant1_threshold, 64 * 4  # torch.Size([64, 14])
-    )
-    send_params(
-        backbone_model3_conv2_conv2_weight, 64 * 1,         # torch.Size([64, 1, 1, 9])
-        backbone_model3_conv2_relu2_threshold, 64 * 4   # torch.Size([64, 7])
-    )
+        'backbone_model3_conv2_conv1_weight',
+        'backbone_model3_conv2_quant1_threshold',
+        'backbone_model3_conv2_conv2_weight',
+        'backbone_model3_conv2_relu2_threshold',
 
     # YuNetBackbone stage4
     # YuNetBackbone Conv4layerBlock 1
-    print("send_params: backbone_model4_conv1_conv1_weight")
-    send_params(
-        backbone_model4_conv1_conv1_weight, 64 * 1*4,           # torch.Size([64, 1, 1, 64])
-        backbone_model4_conv1_quant1_threshold, 64 * 4  # torch.Size([64, 14])
-    )
-    send_params(
-        backbone_model4_conv1_conv2_weight, 64 * 1,         # torch.Size([64, 1, 1, 9])
-        backbone_model4_conv1_relu2_threshold, 64 * 4   # torch.Size([64, 7])
-    )
+        'backbone_model4_conv1_conv1_weight',
+        'backbone_model4_conv1_quant1_threshold',
+        'backbone_model4_conv1_conv2_weight',
+        'backbone_model4_conv1_relu2_threshold',
     # YuNetBackbone Conv4layerBlock 2
-    send_params(
-        backbone_model4_conv2_conv1_weight, 64 * 1*4,           # torch.Size([64, 1, 1, 64])
-        backbone_model4_conv2_quant1_threshold, 64 * 4  # torch.Size([64, 14])
-    )
-    send_params(
-        backbone_model4_conv2_conv2_weight, 64 * 1,         # torch.Size([64, 1, 1, 9])
-        backbone_model4_conv2_relu2_threshold, 64 * 4   # torch.Size([64, 7])
-    )
+        'backbone_model4_conv2_conv1_weight',
+        'backbone_model4_conv2_quant1_threshold',
+        'backbone_model4_conv2_conv2_weight',
+        'backbone_model4_conv2_relu2_threshold',
 
     # YuNetBackbone stage5
     # YuNetBackbone Conv4layerBlock 1
-    print("send_params: backbone_model5_conv1_conv1_weight")
-    send_params(
-        backbone_model5_conv1_conv1_weight, 64 * 1*4,           # torch.Size([64, 1, 1, 64])
-        backbone_model5_conv1_quant1_threshold, 64 * 4  # torch.Size([64, 14])
-    )
-    send_params(
-        backbone_model5_conv1_conv2_weight, 64 * 1,         # torch.Size([64, 1, 1, 9])
-        backbone_model5_conv1_relu2_threshold, 64 * 4   # torch.Size([64, 7])
-    )
+        'backbone_model5_conv1_conv1_weight',
+        'backbone_model5_conv1_quant1_threshold',
+        'backbone_model5_conv1_conv2_weight',
+        'backbone_model5_conv1_relu2_threshold',
     # YuNetBackbone Conv4layerBlock 2
-    send_params(
-        backbone_model5_conv2_conv1_weight, 64 * 1*4,           # torch.Size([64, 1, 1, 64])
-        backbone_model5_conv2_quant1_threshold, 64 * 4  # torch.Size([64, 14])
-    )
-    send_params(
-        backbone_model5_conv2_conv2_weight, 64 * 1,         # torch.Size([64, 1, 1, 9])
-        backbone_model5_conv2_relu2_threshold, 64 * 4   # torch.Size([64, 7])
-    )
+        'backbone_model5_conv2_conv1_weight',
+        'backbone_model5_conv2_quant1_threshold',
+        'backbone_model5_conv2_conv2_weight',
+        'backbone_model5_conv2_relu2_threshold',
 
     # TFPN stride32
     # TFPN ConvDPUnit
-    print("send_params: neck_lateral_convs_2_conv1_weight")
-    send_params(
-        neck_lateral_convs_2_conv1_weight, 64 * 1*4,            # torch.Size([64, 1, 1, 64])
-        neck_lateral_convs_2_quant1_threshold, 64 * 4   # torch.Size([64, 14])
-    )
-    send_params(
-        neck_lateral_convs_2_conv2_weight, 64 * 1,          # torch.Size([64, 1, 1, 9])
-        neck_lateral_convs_2_relu2_threshold, 64 * 4    # torch.Size([64, 7])
-    )
+        'neck_lateral_convs_2_conv1_weight',
+        'neck_lateral_convs_2_quant1_threshold',
+        'neck_lateral_convs_2_conv2_weight',
+        'neck_lateral_convs_2_relu2_threshold',
     # TFPN stride16
     # TFPN ConvDPUnit
-    print("send_params: neck_lateral_convs_1_conv1_weight")
-    send_params(
-        neck_lateral_convs_1_conv1_weight, 64 * 1*4,            # torch.Size([64, 1, 1, 64])
-        neck_lateral_convs_1_quant1_threshold, 64 * 4   # torch.Size([64, 14])
-    )
-    send_params(
-        neck_lateral_convs_1_conv2_weight, 64 * 1,          # torch.Size([64, 1, 1, 9])
-        neck_lateral_convs_1_relu2_threshold, 64 * 4    # torch.Size([64, 7])
-    )
+        'neck_lateral_convs_1_conv1_weight',
+        'neck_lateral_convs_1_quant1_threshold',
+        'neck_lateral_convs_1_conv2_weight',
+        'neck_lateral_convs_1_relu2_threshold',
     # TFPN stride8
     # TFPN ConvDPUnit
-    print("send_params: neck_lateral_convs_0_conv1_weight")
-    send_params(
-        neck_lateral_convs_0_conv1_weight, 64 * 1*4,            # torch.Size([64, 1, 1, 64])
-        neck_lateral_convs_0_quant1_threshold, 64 * 4   # torch.Size([64, 14])
-    )
-    send_params(
-        neck_lateral_convs_0_conv2_weight, 64 * 1,          # torch.Size([64, 1, 1, 9])
-        neck_lateral_convs_0_relu2_threshold, 64 * 4    # torch.Size([64, 7])
-    )
+        'neck_lateral_convs_0_conv1_weight',
+        'neck_lateral_convs_0_quant1_threshold',
+        'neck_lateral_convs_0_conv2_weight',
+        'neck_lateral_convs_0_relu2_threshold',
 
     # YuNet_Head stride8
     # YuNet_Head shared ConvDPUnit
-    print("send_params: bbox_head_multi_level_share_convs_0_0_conv1_weight")
-    send_params(
-        bbox_head_multi_level_share_convs_0_0_conv1_weight, 64 * 1*4,           # torch.Size([64, 1, 1, 64])
-        bbox_head_multi_level_share_convs_0_0_quant1_threshold, 64 * 4  # torch.Size([64, 14])
-    )
-    send_params(
-        bbox_head_multi_level_share_convs_0_0_conv2_weight, 64 * 1,         # torch.Size([64, 1, 1, 9])
-        bbox_head_multi_level_share_convs_0_0_relu2_threshold, 64 * 4   # torch.Size([64, 7])
-    )
+        'bbox_head_multi_level_share_convs_0_0_conv1_weight',
+        'bbox_head_multi_level_share_convs_0_0_quant1_threshold',
+        'bbox_head_multi_level_share_convs_0_0_conv2_weight',
+        'bbox_head_multi_level_share_convs_0_0_relu2_threshold',
     # YuNet_Head stride16
     # YuNet_Head shared ConvDPUnit
-    print("send_params: bbox_head_multi_level_share_convs_1_0_conv1_weight")
-    send_params(
-        bbox_head_multi_level_share_convs_1_0_conv1_weight, 64 * 1*4,           # torch.Size([64, 1, 1, 64])
-        bbox_head_multi_level_share_convs_1_0_quant1_threshold, 64 * 4  # torch.Size([64, 14])
-    )
-    send_params(
-        bbox_head_multi_level_share_convs_1_0_conv2_weight, 64 * 1,         # torch.Size([64, 1, 1, 9])
-        bbox_head_multi_level_share_convs_1_0_relu2_threshold, 64 * 4   # torch.Size([64, 7])
-    )
+        'bbox_head_multi_level_share_convs_1_0_conv1_weight',
+        'bbox_head_multi_level_share_convs_1_0_quant1_threshold',
+        'bbox_head_multi_level_share_convs_1_0_conv2_weight',
+        'bbox_head_multi_level_share_convs_1_0_relu2_threshold',
     # YuNet_Head stride32
     # YuNet_Head shared ConvDPUnit
-    print("send_params: bbox_head_multi_level_share_convs_2_0_conv1_weight")
-    send_params(
-        bbox_head_multi_level_share_convs_2_0_conv1_weight, 64 * 1*4,           # torch.Size([64, 1, 1, 64])
-        bbox_head_multi_level_share_convs_2_0_quant1_threshold, 64 * 4  # torch.Size([64, 14])
-    )
-    send_params(
-        bbox_head_multi_level_share_convs_2_0_conv2_weight, 64 * 1,         # torch.Size([64, 1, 1, 9])
-        bbox_head_multi_level_share_convs_2_0_relu2_threshold, 64 * 4   # torch.Size([64, 7])
-    )
+        'bbox_head_multi_level_share_convs_2_0_conv1_weight',
+        'bbox_head_multi_level_share_convs_2_0_quant1_threshold',
+        'bbox_head_multi_level_share_convs_2_0_conv2_weight',
+        'bbox_head_multi_level_share_convs_2_0_relu2_threshold',
 
     # YuNet_Head cls ConvDPUnit
     # YuNet_Head stride8
-    print("send_params: bbox_head_multi_level_cls_0_conv1_weight")
-    send_params(
-        bbox_head_multi_level_cls_0_conv1_weight, 1 * 1*4,          # torch.Size([1, 1, 1, 64])
-        bbox_head_multi_level_cls_0_quant1_threshold, 1 * 4     # torch.Size([1, 14])
-    )
-    send_params(
-        bbox_head_multi_level_cls_0_conv2_weight, 1 * 1,            # torch.Size([1, 1, 1, 9])
-        bbox_head_multi_level_cls_0_quant2_threshold, 1 * 4     # torch.Size([1, 14])
-    )
+        'bbox_head_multi_level_cls_0_conv1_weight',
+        'bbox_head_multi_level_cls_0_quant1_threshold',
+        'bbox_head_multi_level_cls_0_conv2_weight',
+        'bbox_head_multi_level_cls_0_quant2_threshold',
     # YuNet_Head stride16
-    print("send_params: bbox_head_multi_level_cls_1_conv1_weight")
-    send_params(
-        bbox_head_multi_level_cls_1_conv1_weight, 1 * 1*4,          # torch.Size([1, 1, 1, 64])
-        bbox_head_multi_level_cls_1_quant1_threshold, 1 * 4     # torch.Size([1, 14])
-    )
-    send_params(
-        bbox_head_multi_level_cls_1_conv2_weight, 1 * 1,            # torch.Size([1, 1, 1, 9])
-        bbox_head_multi_level_cls_1_quant2_threshold, 1 * 4     # torch.Size([1, 14])
-    )
+        'bbox_head_multi_level_cls_1_conv1_weight',
+        'bbox_head_multi_level_cls_1_quant1_threshold',
+        'bbox_head_multi_level_cls_1_conv2_weight',
+        'bbox_head_multi_level_cls_1_quant2_threshold',
     # YuNet_Head stride32
-    print("send_params: bbox_head_multi_level_cls_2_conv1_weight")
-    send_params(
-        bbox_head_multi_level_cls_2_conv1_weight, 1 * 1*4,          # torch.Size([1, 1, 1, 64])
-        bbox_head_multi_level_cls_2_quant1_threshold, 1 * 4     # torch.Size([1, 14])
-    )
-    send_params(
-        bbox_head_multi_level_cls_2_conv2_weight, 1 * 1,            # torch.Size([1, 1, 1, 9])
-        bbox_head_multi_level_cls_2_quant2_threshold, 1 * 4     # torch.Size([1, 14])
-    )
+        'bbox_head_multi_level_cls_2_conv1_weight',
+        'bbox_head_multi_level_cls_2_quant1_threshold',
+        'bbox_head_multi_level_cls_2_conv2_weight',
+        'bbox_head_multi_level_cls_2_quant2_threshold',
 
     # YuNet_Head bbox ConvDPUnit
     # YuNet_Head stride8
-    print("send_params: bbox_head_multi_level_bbox_0_conv1_weight")
-    send_params(
-        bbox_head_multi_level_bbox_0_conv1_weight, 4 * 1*4,             # torch.Size([4, 1, 1, 64])
-        bbox_head_multi_level_bbox_0_quant1_threshold, 4 * 4    # torch.Size([4, 14])
-    )
-    send_params(
-        bbox_head_multi_level_bbox_0_conv2_weight, 4 * 1,               # torch.Size([4, 1, 1, 9])
-        bbox_head_multi_level_bbox_0_quant2_threshold, 4 * 4    # torch.Size([4, 14])
-    )
+        'bbox_head_multi_level_bbox_0_conv1_weight',
+        'bbox_head_multi_level_bbox_0_quant1_threshold',
+        'bbox_head_multi_level_bbox_0_conv2_weight',
+        'bbox_head_multi_level_bbox_0_quant2_threshold',
     # YuNet_Head stride16
-    print("send_params: bbox_head_multi_level_bbox_1_conv1_weight")
-    send_params(
-        bbox_head_multi_level_bbox_1_conv1_weight, 4 * 1*4,             # torch.Size([4, 1, 1, 64])
-        bbox_head_multi_level_bbox_1_quant1_threshold, 4 * 4    # torch.Size([4, 14])
-    )
-    send_params(
-        bbox_head_multi_level_bbox_1_conv2_weight, 4 * 1,               # torch.Size([4, 1, 1, 9])
-        bbox_head_multi_level_bbox_1_quant2_threshold, 4 * 4    # torch.Size([4, 14])
-    )
+        'bbox_head_multi_level_bbox_1_conv1_weight',
+        'bbox_head_multi_level_bbox_1_quant1_threshold',
+        'bbox_head_multi_level_bbox_1_conv2_weight',
+        'bbox_head_multi_level_bbox_1_quant2_threshold',
     # YuNet_Head stride32
-    print("send_params: bbox_head_multi_level_bbox_2_conv1_weight")
-    send_params(
-        bbox_head_multi_level_bbox_2_conv1_weight, 4 * 1*4,             # torch.Size([4, 1, 1, 64])
-        bbox_head_multi_level_bbox_2_quant1_threshold, 4 * 4    # torch.Size([4, 14])
-    )
-    send_params(
-        bbox_head_multi_level_bbox_2_conv2_weight, 4 * 1,               # torch.Size([4, 1, 1, 9])
-        bbox_head_multi_level_bbox_2_quant2_threshold, 4 * 4    # torch.Size([4, 14])
-    )
+        'bbox_head_multi_level_bbox_2_conv1_weight',
+        'bbox_head_multi_level_bbox_2_quant1_threshold',
+        'bbox_head_multi_level_bbox_2_conv2_weight',
+        'bbox_head_multi_level_bbox_2_quant2_threshold',
 
     # YuNet_Head obj ConvDPUnit
     # YuNet_Head stride8
-    print("send_params: bbox_head_multi_level_obj_0_conv1_weight")
-    send_params(
-        bbox_head_multi_level_obj_0_conv1_weight, 1 * 1*4,          # torch.Size([1, 1, 1, 64])
-        bbox_head_multi_level_obj_0_quant1_threshold, 1 * 4     # torch.Size([1, 14])
-    )
-    send_params(
-        bbox_head_multi_level_obj_0_conv2_weight, 1 * 1,            # torch.Size([1, 1, 1, 9])
-        bbox_head_multi_level_obj_0_quant2_threshold, 1 * 4     # torch.Size([1, 14])
-    )
+        'bbox_head_multi_level_obj_0_conv1_weight',
+        'bbox_head_multi_level_obj_0_quant1_threshold',
+        'bbox_head_multi_level_obj_0_conv2_weight',
+        'bbox_head_multi_level_obj_0_quant2_threshold',
     # YuNet_Head stride16
-    print("send_params: bbox_head_multi_level_obj_1_conv1_weight")
-    send_params(
-        bbox_head_multi_level_obj_1_conv1_weight, 1 * 1*4,          # torch.Size([1, 1, 1, 64])
-        bbox_head_multi_level_obj_1_quant1_threshold, 1 * 4     # torch.Size([1, 14])
-    )
-    send_params(
-        bbox_head_multi_level_obj_1_conv2_weight, 1 * 1,            # torch.Size([1, 1, 1, 9])
-        bbox_head_multi_level_obj_1_quant2_threshold, 1 * 4     # torch.Size([1, 14])
-    )
+        'bbox_head_multi_level_obj_1_conv1_weight',
+        'bbox_head_multi_level_obj_1_quant1_threshold',
+        'bbox_head_multi_level_obj_1_conv2_weight',
+        'bbox_head_multi_level_obj_1_quant2_threshold',
     # YuNet_Head stride32
-    print("send_params: bbox_head_multi_level_obj_2_conv1_weight")
-    send_params(
-        bbox_head_multi_level_obj_2_conv1_weight, 1 * 1*4,          # torch.Size([1, 1, 1, 64])
-        bbox_head_multi_level_obj_2_quant1_threshold, 1 * 4     # torch.Size([1, 14])
-    )
-    send_params(
-        bbox_head_multi_level_obj_2_conv2_weight, 1 * 1,            # torch.Size([1, 1, 1, 9])
-        bbox_head_multi_level_obj_2_quant2_threshold, 1 * 4     # torch.Size([1, 14])
-    )
+        'bbox_head_multi_level_obj_2_conv1_weight',
+        'bbox_head_multi_level_obj_2_quant1_threshold',
+        'bbox_head_multi_level_obj_2_conv2_weight',
+        'bbox_head_multi_level_obj_2_quant2_threshold',
 
     # YuNet_Head kps ConvDPUnit
     # YuNet_Head stride8
-    print("send_params: bbox_head_multi_level_kps_0_conv1_weight")
-    send_params(
-        bbox_head_multi_level_kps_0_conv1_weight, 10 * 1*4,             # torch.Size([10, 1, 1, 64])
-        bbox_head_multi_level_kps_0_quant1_threshold, 10 * 4    # torch.Size([10, 14])
-    )
-    send_params(
-        bbox_head_multi_level_kps_0_conv2_weight, 10 * 1,               # torch.Size([10, 1, 1, 9])
-        bbox_head_multi_level_kps_0_quant2_threshold, 10 * 4    # torch.Size([10, 14])
-    )
+        'bbox_head_multi_level_kps_0_conv1_weight',
+        'bbox_head_multi_level_kps_0_quant1_threshold',
+        'bbox_head_multi_level_kps_0_conv2_weight',
+        'bbox_head_multi_level_kps_0_quant2_threshold',
     # YuNet_Head stride16
-    print("send_params: bbox_head_multi_level_kps_1_conv1_weight")
-    send_params(
-        bbox_head_multi_level_kps_1_conv1_weight, 10 * 1*4,             # torch.Size([10, 1, 1, 64])
-        bbox_head_multi_level_kps_1_quant1_threshold, 10 * 4    # torch.Size([10, 14])
-    )
-    send_params(
-        bbox_head_multi_level_kps_1_conv2_weight, 10 * 1,               # torch.Size([10, 1, 1, 9])
-        bbox_head_multi_level_kps_1_quant2_threshold, 10 * 4    # torch.Size([10, 14])
-    )
+        'bbox_head_multi_level_kps_1_conv1_weight',
+        'bbox_head_multi_level_kps_1_quant1_threshold',
+        'bbox_head_multi_level_kps_1_conv2_weight',
+        'bbox_head_multi_level_kps_1_quant2_threshold',
     # YuNet_Head stride32
-    print("send_params: bbox_head_multi_level_kps_2_conv1_weight")
-    send_params(
-        bbox_head_multi_level_kps_2_conv1_weight, 10 * 1*4,             # torch.Size([10, 1, 1, 64])
-        bbox_head_multi_level_kps_2_quant1_threshold, 10 * 4    # torch.Size([10, 14])
-    )
-    send_params(
-        bbox_head_multi_level_kps_2_conv2_weight, 10 * 1,               # torch.Size([10, 1, 1, 9])
-        bbox_head_multi_level_kps_2_quant2_threshold, 10 * 4    # torch.Size([10, 14])
-    )
+        'bbox_head_multi_level_kps_2_conv1_weight',
+        'bbox_head_multi_level_kps_2_quant1_threshold',
+        'bbox_head_multi_level_kps_2_conv2_weight',
+        'bbox_head_multi_level_kps_2_quant2_threshold',
+    ]
 
-    t1 = time.time()
-    print("Elapsed time:", t1-t0)
+    params = []
+    for name in names:
+        params.extend(globals()[name])
+
+    return np.array(params, dtype=np.uint64)
 
 
 def decode_bbox_kps(detects):
@@ -444,6 +286,14 @@ def decode_bbox_kps(detects):
 def main():
     images, img = jpg_to_rgb('../data/largest_selfie_160x160.jpg')
 
+    param_list = create_param_list()
+    param_size = len(param_list)
+
+    params = pynq.allocate(shape=(param_size,), dtype=np.uint64)
+    params[:] = np.array(param_list, dtype=np.uint64)
+
+    overlay.params = params.physical_address
+    overlay.params_size = param_size
     overlay.register_map.CTRL.AP_START = 1
 
     print('yunet(images)')

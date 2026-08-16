@@ -1,6 +1,7 @@
 #include "overlay.hpp"
+#include "image.hpp"
 
-void write_params(fifo<axis_data64>& ins) {
+void write_params(ap_uint<64>* params, fifo<axis_data64>& ins) {
     static constexpr int param_counts[] = {
         // YuNetBackbone stage0
         // Conv_head
@@ -114,12 +115,12 @@ void write_params(fifo<axis_data64>& ins) {
         10 * 1 + 10 * 4
     };
     
-	axis_data64 pkt;
     int ptr = 0;
+	axis_data64 pkt;
     for (int j = 0; j < sizeof(param_counts) / sizeof(param_counts[0]); j++) {
         printf("len=%d\n", param_counts[j]);
         for (int i = 0; i < param_counts[j]; i++) {
-            pkt.data = 0LL;
+            pkt.data = params[ptr++];
             pkt.last = (i == param_counts[j] - 1);
             ins.write(pkt);
         }
@@ -127,25 +128,30 @@ void write_params(fifo<axis_data64>& ins) {
 }
 
 void pattern_overlay(fifo<axis_data8>& pout,
-    fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs)
+    fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
+    ap_uint<64>* params, ap_uint<32> params_size)
 {
 #pragma HLS INTERFACE axis port=pout
 #pragma HLS INTERFACE axis port=yunet_ins
 #pragma HLS INTERFACE axis port=yunet_outs
+#pragma HLS INTERFACE m_axi port=params offset=slave bundle=gmem
+#pragma HLS INTERFACE s_axilite port=params bundle=ctrl
+#pragma HLS INTERFACE s_axilite port=params_size bundle=ctrl
 #pragma HLS INTERFACE s_axilite port=return bundle=ctrl
 
     static Detect detects[MAX_DETECTS];
     static ap_uint<8> detect_count = 0;
 
+    int ptr = 0;
     axis_data64 ival;
     for (int j = 0; j < 160; j += 20) {
         for (int i = 0; i < 160 * 20; i++) {
-            ival.data = 0LL;
+            ival.data = images[ptr++];
             ival.last = (i == 160 * 20 - 1);
             yunet_ins.write(ival);
         }
     }
-    write_params(yunet_ins);
+    write_params(params, yunet_ins);
 
     // read_detects(yunet_outs, detects, detect_count);
     axis_data8 oval;
