@@ -236,16 +236,13 @@ def main():
     params[:] = np.array(param_list, dtype=np.uint64)
     params.flush()
 
-    print('addr=', hex(params.physical_address))
-    pattern_overlay.register_map.params = params.physical_address
-    print('addr=', hex(pattern_overlay.register_map.params))
+    pattern_overlay.register_map.params_1.params = params.physical_address
     pattern_overlay.register_map.params_size = param_size
     pattern_overlay.register_map.CTRL.AP_START = 1
 
     print('yunet(images)')
     size = recv_output(1)
     print('size=', size)
-    size = 1
     bboxes = []
     kps_list = []
     for i in range(size):

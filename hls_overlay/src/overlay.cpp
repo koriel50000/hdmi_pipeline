@@ -127,6 +127,37 @@ void write_params(ap_uint<64>* params, fifo<axis_data64>& ins) {
     }
 }
 
+// void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTS], ap_uint<8>& count) {
+// #pragma HLS INLINE off
+
+//     axis_data8 data;
+//     data = outs.read();
+//     count = data.data;
+
+//     for (int i = 0; i < MAX_DETECTS; i++) {
+//         if (i < count) {
+//             axis_data8 dats[16];
+// #pragma HLS ARRAY_PARTITION variable=dats complete
+
+//             for (int j = 0; j < 16; j++) {
+// #pragma HLS PIPELINE
+//                 dats[j] = outs.read();
+//             }
+
+//             detects[i].x1 = dats[0].data;
+//             detects[i].y1 = dats[1].data;
+//             detects[i].x2 = dats[2].data;
+//             detects[i].y2 = dats[3].data;
+
+//             for (int k = 0; k < 5; k++) {
+// #pragma HLS UNROLL
+//                 detects[i].kps_x[k] = dats[6 + k * 2].data * 4 + 320;
+//                 detects[i].kps_y[k] = dats[7 + k * 2].data * 4 + 40;
+//             }
+//         }
+//     }
+// }
+
 void pattern_overlay(fifo<axis_data8>& pout,
     fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
     ap_uint<64>* params, ap_uint<32> params_size)
@@ -156,15 +187,13 @@ void pattern_overlay(fifo<axis_data8>& pout,
     // read_detects(yunet_outs, detects, detect_count);
     axis_data8 oval;
     oval = yunet_outs.read();
-    int count = 1;
-    // oval.data = params_size / 256;
+    int count = oval.data;
     oval.last = 1;
     pout.write(oval);
     for (int i = 0; i < MAX_DETECTS; i++) {
         if (i < count) {
-            ap_uint<64> v = params[0];
             for (int j = 0; j < 16; j++) {
-                oval.data = (v >> (8 * j)) & 0xff; //yunet_outs.read();
+                oval = yunet_outs.read();
                 oval.last = (j == 16 - 1);
                 pout.write(oval);
             }
