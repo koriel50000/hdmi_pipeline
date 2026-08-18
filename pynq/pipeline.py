@@ -245,13 +245,13 @@ def main():
     print('size=', size)
     bboxes = []
     kps_list = []
-    for i in range(size):
-        detects = recv_output(16)
-        bbox, kps = decode_bbox_kps(detects)
-        print('bbox=', bbox)
-        print('kps=', kps)
-        bboxes.append(bbox)
-        kps_list.append(kps)
+    # for i in range(size):
+    #     detects = recv_output(16)
+    #     bbox, kps = decode_bbox_kps(detects)
+    #     print('bbox=', bbox)
+    #     print('kps=', kps)
+    #     bboxes.append(bbox)
+    #     kps_list.append(kps)
 
     while pattern_overlay.register_map.CTRL.AP_DONE == 0:
         pass
