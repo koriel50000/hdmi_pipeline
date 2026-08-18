@@ -136,24 +136,21 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTS], ap_uint<8
 
     for (int i = 0; i < MAX_DETECTS; i++) {
         if (i < count) {
-            axis_data8 dats[16];
-#pragma HLS ARRAY_PARTITION variable=dats complete
-
-            for (int j = 0; j < 16; j++) {
-#pragma HLS PIPELINE
-                dats[j] = outs.read();
-            }
-
-            detects[i].x1 = dats[0].data;
-            detects[i].y1 = dats[1].data;
-            detects[i].x2 = dats[2].data;
-            detects[i].y2 = dats[3].data;
-
-            for (int k = 0; k < 5; k++) {
-#pragma HLS UNROLL
-                detects[i].kps_x[k] = dats[6 + k * 2].data;
-                detects[i].kps_y[k] = dats[7 + k * 2].data;
-            }
+            detects[i].x1 = outs.read().data;
+            detects[i].y1 = outs.read().data;
+            detects[i].x2 = outs.read().data;
+            detects[i].y2 = outs.read().data;
+            detects[i].score = (outs.read().data, outs.read().data);
+            detects[i].kps_x[0] = outs.read().data;
+            detects[i].kps_y[0] = outs.read().data;
+            detects[i].kps_x[1] = outs.read().data;
+            detects[i].kps_y[1] = outs.read().data;
+            detects[i].kps_x[2] = outs.read().data;
+            detects[i].kps_y[2] = outs.read().data;
+            detects[i].kps_x[3] = outs.read().data;
+            detects[i].kps_y[3] = outs.read().data;
+            detects[i].kps_x[4] = outs.read().data;
+            detects[i].kps_y[4] = outs.read().data;
         }
     }
 }
