@@ -13,23 +13,8 @@ from params import *
 
 base = Overlay("./design_1.bit")
 pattern_overlay = base.pattern_overlay_0
-dma = base.axi_dma_0
-
-outbuf = allocate(shape=(16,), dtype=np.uint8)
 
 t0 = time.time()
-
-def recv_output(size):
-    dma.recvchannel.transfer(outbuf[:size])
-    dma.recvchannel.wait()
-    vals = [int(x) for x in outbuf[:size]]
-    if size == 1:
-        return vals[0]
-    else:
-        return vals
-    # for i in range(size):
-    #     assert outbuf[i] == output[i], f"Mismatch at index {i}: outbuf={outbuf[i]}, expected={output[i]}"
-
 
 def create_param_list():
     names = [
@@ -217,16 +202,6 @@ def create_param_list():
     return np.array(params, dtype=np.uint64)
 
 
-def decode_bbox_kps(detects):
-    x1 = detects[0]
-    y1 = detects[1]
-    x2 = detects[2]
-    y2 = detects[3]
-    score = (detects[4] << 8) | detects[5]
-    kps = detects[6:16]  # [x0,y0,x1,y1,...,x4,y4]
-    return [x1, y1, x2, y2, score], kps
-
-
 def main():
     param_list = create_param_list()
     param_size = len(param_list)
@@ -241,17 +216,6 @@ def main():
     pattern_overlay.register_map.CTRL.AP_START = 1
 
     print('yunet(images)')
-    size = recv_output(1)
-    print('size=', size)
-    bboxes = []
-    kps_list = []
-    # for i in range(size):
-    #     detects = recv_output(16)
-    #     bbox, kps = decode_bbox_kps(detects)
-    #     print('bbox=', bbox)
-    #     print('kps=', kps)
-    #     bboxes.append(bbox)
-    #     kps_list.append(kps)
 
     while pattern_overlay.register_map.CTRL.AP_DONE == 0:
         pass
