@@ -135,7 +135,7 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTS], ap_uint<8
     count = data.data;
 
     for (int i = 0; i < MAX_DETECTS; i++) {
-        if (i < 1) {
+        if (i < 0) {
             detects[i].x1 = outs.read().data;
             detects[i].y1 = outs.read().data;
             detects[i].x2 = outs.read().data;
