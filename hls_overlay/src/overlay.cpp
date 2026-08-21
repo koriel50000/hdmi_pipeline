@@ -135,12 +135,14 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTS], ap_uint<8
     count = data.data;
 
     for (int i = 0; i < MAX_DETECTS; i++) {
-        if (i < 0) {
+        if (i < 1) {
             detects[i].x1 = outs.read().data;
             detects[i].y1 = outs.read().data;
             detects[i].x2 = outs.read().data;
             detects[i].y2 = outs.read().data;
-            detects[i].score = (outs.read().data, outs.read().data);
+            ap_int<8> hi = outs.read().data;
+            ap_int<8> lo = outs.read().data;
+            detects[i].score = (hi, lo);
             detects[i].kps_x[0] = outs.read().data;
             detects[i].kps_y[0] = outs.read().data;
             detects[i].kps_x[1] = outs.read().data;
@@ -178,7 +180,9 @@ void pattern_overlay(
             yunet_ins.write(ival);
         }
     }
-    write_params(params, yunet_ins);
 
+#pragma HLS dataflow
+
+    write_params(params, yunet_ins);
     read_detects(yunet_outs, detects, detect_count);
 }
