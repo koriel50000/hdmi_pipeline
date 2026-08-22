@@ -175,18 +175,18 @@ void pattern_overlay(
 
     int ptr = 0;
     axis_data64 pkt;
-    for (int j = 0; j < 160; j += 20) {
-        for (int i = 0; i < 160 * 20; i++) {
-            pkt.data = images[ptr++];
-            pkt.last = (i == 160 * 20 - 1);
-            // yunet_ins.write(pkt);
-        }
-    }
+    // for (int j = 0; j < 160; j += 20) {
+    //     for (int i = 0; i < 160 * 20; i++) {
+    //         pkt.data = images[ptr++];
+    //         pkt.last = (i == 160 * 20 - 1);
+    //         // yunet_ins.write(pkt);
+    //     }
+    // }
 
 // #pragma HLS dataflow
 
     // write_params(params, yunet_ins);
     // read_detects(yunet_outs, detects, detect_count);
-    write_params(params);
+    // write_params(params);
     read_detects(detects, detect_count);
 }
