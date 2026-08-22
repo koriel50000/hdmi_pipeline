@@ -31,7 +31,7 @@ template <typename T>
 using fifo = hls::stream<T>;
 
 extern "C" {
-void pattern_overlay();
+void pattern_overlay(
     // fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
-    // ap_uint<64> params[PARAM_COUNT]);
+    ap_uint<64> params[PARAM_COUNT]);
 }
