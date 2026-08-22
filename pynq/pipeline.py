@@ -2,12 +2,11 @@
 
 from pynq import Overlay
 from pynq import MMIO
-from pynq import allocate # 利用可能な領域を確保するメソッドを利用可能にする
+from pynq import allocate
 
-import numpy as np
-from PIL import Image, ImageDraw
+import sys
 import time
-import random
+import numpy as np
 
 from params import *
 
@@ -212,13 +211,27 @@ def main():
     params.flush()
 
     pattern_overlay.register_map.params_1.params = params.physical_address
-    pattern_overlay.register_map.params_size = param_size
-    pattern_overlay.register_map.CTRL.AP_START = 1
 
-    print('yunet(images)')
+    start_time = time.time()
+    frame_processed = 0
 
-    while pattern_overlay.register_map.CTRL.AP_DONE == 0:
-        pass
+    try:
+        while True:
+            pattern_overlay.register_map.CTRL.AP_START = 1
+            while pattern_overlay.register_map.CTRL.AP_DONE == 0:
+                pass
+            
+            frame_processed += 1
+            elapsed = time.time() - start_time
+            fps = frame_processed / elapsed
+            
+            sys.stdout.write(f"\rFPS: {fps:.2f}")
+            sys.stdout.flush()
+            
+            if elapsed > 30:
+                break
+    finally:
+        print()
 
 
 if __name__ == "__main__":

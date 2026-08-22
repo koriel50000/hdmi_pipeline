@@ -1,4 +1,4 @@
-# 2026-08-22T14:46:40.669240400
+# 2026-08-21T21:22:54.904392
 import vitis
 
 client = vitis.create_client()
@@ -8,4 +8,6 @@ comp = client.get_component(name="hls_component")
 comp.run(operation="SYNTHESIS")
 
 comp.run(operation="PACKAGE")
+
+vitis.dispose()
 
