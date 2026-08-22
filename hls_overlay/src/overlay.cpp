@@ -159,22 +159,21 @@ void read_detects(Detect detects[MAX_DETECTS], ap_uint<8>& count) {
     }
 }
 
-void pattern_overlay(
+void pattern_overlay()
     // fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
-    ap_uint<64> params[PARAM_COUNT])
+    // ap_uint<64> params[PARAM_COUNT])
 {
 // #pragma HLS INTERFACE axis port=yunet_ins
 // #pragma HLS INTERFACE axis port=yunet_outs
-#pragma HLS INTERFACE m_axi port=params offset=slave bundle=gmem num_read_outstanding=32 max_read_burst_length=64
 // #pragma HLS INTERFACE m_axi port=params offset=slave bundle=gmem
-#pragma HLS INTERFACE s_axilite port=params bundle=ctrl
+// #pragma HLS INTERFACE s_axilite port=params bundle=ctrl
 #pragma HLS INTERFACE s_axilite port=return bundle=ctrl
 
-    static Detect detects[MAX_DETECTS];
-    static ap_uint<8> detect_count = 0;
+    // static Detect detects[MAX_DETECTS];
+    // static ap_uint<8> detect_count = 0;
 
-    int ptr = 0;
-    axis_data64 pkt;
+    // int ptr = 0;
+    // axis_data64 pkt;
     // for (int j = 0; j < 160; j += 20) {
     //     for (int i = 0; i < 160 * 20; i++) {
     //         pkt.data = images[ptr++];
@@ -188,5 +187,5 @@ void pattern_overlay(
     // write_params(params, yunet_ins);
     // read_detects(yunet_outs, detects, detect_count);
     // write_params(params);
-    read_detects(detects, detect_count);
+    // read_detects(detects, detect_count);
 }
