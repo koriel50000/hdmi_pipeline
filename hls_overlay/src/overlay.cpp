@@ -130,8 +130,7 @@ void write_params(ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& ins) {
 }
 
 void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTS], ap_uint<8>& count) {
-    axis_data8 data;
-    data = outs.read();
+    count = outs.read().data;
 
     for (int i = 0; i < MAX_DETECTS; i++) {
         if (i < count) {
