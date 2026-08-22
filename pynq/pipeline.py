@@ -225,7 +225,7 @@ def main():
             elapsed = time.time() - start_time
             fps = frame_processed / elapsed
             
-            sys.stdout.write(f"\rFPS: {fps:.2f}")
+            sys.stdout.write(f"\rFPS: {fps:.2f} {frame_processed}")
             sys.stdout.flush()
             
             if elapsed > 30:

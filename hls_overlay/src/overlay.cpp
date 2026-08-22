@@ -165,8 +165,8 @@ void pattern_overlay(
 {
 // #pragma HLS INTERFACE axis port=yunet_ins
 // #pragma HLS INTERFACE axis port=yunet_outs
-// #pragma HLS INTERFACE m_axi port=params offset=slave bundle=gmem num_read_outstanding=32 max_read_burst_length=64
-#pragma HLS INTERFACE m_axi port=params offset=slave bundle=gmem
+#pragma HLS INTERFACE m_axi port=params offset=slave bundle=gmem num_read_outstanding=32 max_read_burst_length=64
+// #pragma HLS INTERFACE m_axi port=params offset=slave bundle=gmem
 #pragma HLS INTERFACE s_axilite port=params bundle=ctrl
 #pragma HLS INTERFACE s_axilite port=return bundle=ctrl
 
