@@ -116,7 +116,8 @@ constexpr int PARAM_SIZES[] = {
 
 constexpr int PARAM_BLOCK_COUNT = sizeof(PARAM_SIZES) / sizeof(PARAM_SIZES[0]);
         
-void write_params(ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& ins) {
+// void write_params(ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& ins) {
+void write_params(ap_uint<64> params[PARAM_COUNT]) {
     int ptr = 0;
 	axis_data64 pkt;
     for (int j = 0; j < PARAM_BLOCK_COUNT; j++) {
@@ -124,62 +125,95 @@ void write_params(ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& ins) {
         for (int i = 0; i < PARAM_SIZES[j]; i++) {
             pkt.data = params[ptr++];
             pkt.last = (i == PARAM_SIZES[j] - 1);
-            ins.write(pkt);
+            //ins.write(pkt);
         }
     }
 }
 
-void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTS], ap_uint<8>& count) {
-    count = outs.read().data;
+// void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTS], ap_uint<8>& count) {
+void read_detects(Detect detects[MAX_DETECTS], ap_uint<8>& count) {
+    count = 6; //outs.read().data;
 
-    for (int i = 0; i < MAX_DETECTS; i++) {
-        if (i < count) {
-            detects[i].x1 = outs.read().data;
-            detects[i].y1 = outs.read().data;
-            detects[i].x2 = outs.read().data;
-            detects[i].y2 = outs.read().data;
-            ap_int<8> hi = outs.read().data;
-            ap_int<8> lo = outs.read().data;
-            detects[i].score = (hi, lo);
-            detects[i].kps_x[0] = outs.read().data;
-            detects[i].kps_y[0] = outs.read().data;
-            detects[i].kps_x[1] = outs.read().data;
-            detects[i].kps_y[1] = outs.read().data;
-            detects[i].kps_x[2] = outs.read().data;
-            detects[i].kps_y[2] = outs.read().data;
-            detects[i].kps_x[3] = outs.read().data;
-            detects[i].kps_y[3] = outs.read().data;
-            detects[i].kps_x[4] = outs.read().data;
-            detects[i].kps_y[4] = outs.read().data;
-        }
-    }
+    detects[0] = Detect{ 48, 36, 84, 84, 49153, { 56, 67, 61, 57, 70 }, { 53, 51, 59, 66, 66 } };
+    detects[1] = Detect{ 110, 65, 146, 113, 45942, { 126, 138, 134, 129, 138 }, { 83, 83, 89, 98, 98 } };
+    detects[2] = Detect{ 11, 121, 47, 157, 45942, { 24, 35, 30, 24, 35 }, { 136, 136, 139, 147, 145 } };
+    detects[3] = Detect{ 13, 33, 35, 63, 42237, { 19, 25, 22, 19, 27 }, { 43, 43, 49, 54, 54 } };
+    detects[4] = Detect{ 131, 38, 157, 68, 38874, { 144, 150, 150, 145, 154 }, { 49, 49, 53, 59, 59 } };
+    detects[5] = Detect{ 70, 97, 106, 145, 35739, { 88, 96, 93, 88, 96 }, { 115, 115, 121, 130, 130 } };
+
+    // for (int i = 0; i < MAX_DETECTS; i++) {
+    //     if (i < count) {
+    //         detects[i].x1 = outs.read().data;
+    //         detects[i].y1 = outs.read().data;
+    //         detects[i].x2 = outs.read().data;
+    //         detects[i].y2 = outs.read().data;
+    //         ap_int<8> hi = outs.read().data;
+    //         ap_int<8> lo = outs.read().data;
+    //         detects[i].score = (hi, lo);
+    //         detects[i].kps_x[0] = outs.read().data;
+    //         detects[i].kps_y[0] = outs.read().data;
+    //         detects[i].kps_x[1] = outs.read().data;
+    //         detects[i].kps_y[1] = outs.read().data;
+    //         detects[i].kps_x[2] = outs.read().data;
+    //         detects[i].kps_y[2] = outs.read().data;
+    //         detects[i].kps_x[3] = outs.read().data;
+    //         detects[i].kps_y[3] = outs.read().data;
+    //         detects[i].kps_x[4] = outs.read().data;
+    //         detects[i].kps_y[4] = outs.read().data;
+    //     }
+    // }
 }
 
-void pattern_overlay(
-    fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
+void pattern_overlay(fifo<pixel_t>& pout,
+    // fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
     ap_uint<64> params[PARAM_COUNT])
 {
-#pragma HLS INTERFACE axis port=yunet_ins
-#pragma HLS INTERFACE axis port=yunet_outs
-#pragma HLS INTERFACE m_axi port=params offset=slave bundle=gmem
-#pragma HLS INTERFACE s_axilite port=params bundle=ctrl
-#pragma HLS INTERFACE s_axilite port=return bundle=ctrl
+#pragma HLS interface axis port=pout
+// #pragma HLS interface axis port=yunet_ins
+// #pragma HLS interface axis port=yunet_outs
+#pragma HLS interface m_axi port=params offset=slave bundle=gmem
+#pragma HLS interface s_axilite port=params bundle=ctrl
+#pragma HLS interface s_axilite port=return bundle=ctrl
 
     static Detect detects[MAX_DETECTS];
     static ap_uint<8> detect_count = 0;
 
-    int ptr = 0;
-    axis_data64 pkt;
-    for (int j = 0; j < 160; j += 20) {
-        for (int i = 0; i < 160 * 20; i++) {
-            pkt.data = images[ptr++];
-            pkt.last = (i == 160 * 20 - 1);
-            yunet_ins.write(pkt);
+    pixel_t p;
+    p.data = 0;
+    p.keep = 0x7;
+    p.strb = 0x7;
+    p.user = 0;
+    p.last = 0;
+    p.id = 0;
+    p.dest = 0;
+
+    for (int y = 0; y < HEIGHT; y++) {
+        for (int x = 0; x < WIDTH; x++) {
+#pragma HLS pipeline
+            p.data.range(23, 16) = (x < 400) ? 0xff : 0x00; // R
+            p.data.range(15,  8) = (400 <= x && x < 800) ? 0xff : 0x00; // G
+            p.data.range( 7,  0) = (800 <= x) ? 0xff : 0x00; // B
+            p.user[0] = (x == 0 && y == 0);
+            p.last    = (x == WIDTH - 1);
+            pout.write(p);
         }
     }
 
+    // int ptr = 0;
+    // axis_data64 pkt;
+    
+    // for (int j = 0; j < 160; j += 20) {
+    //     for (int i = 0; i < 160 * 20; i++) {
+    //         pkt.data = images[ptr++];
+    //         pkt.last = (i == 160 * 20 - 1);
+    //         yunet_ins.write(pkt);
+    //     }
+    // }
+
 #pragma HLS dataflow
 
-    write_params(params, yunet_ins);
-    read_detects(yunet_outs, detects, detect_count);
+    // write_params(params, yunet_ins);
+    // read_detects(yunet_outs, detects, detect_count);
+    write_params(params);
+    read_detects(detects, detect_count);
 }
