@@ -31,7 +31,7 @@ struct Detect {
 };
 
 extern "C" {
-void pattern_overlay(fifo<pixel_t>& pout,
+void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
     // fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
     ap_uint<64> params[PARAM_COUNT]);
 }

@@ -164,10 +164,11 @@ void read_detects(Detect detects[MAX_DETECTS], ap_uint<8>& count) {
     // }
 }
 
-void pattern_overlay(fifo<pixel_t>& pout,
+void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
     // fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
     ap_uint<64> params[PARAM_COUNT])
 {
+#pragma HLS interface axis port=pin
 #pragma HLS interface axis port=pout
 // #pragma HLS interface axis port=yunet_ins
 // #pragma HLS interface axis port=yunet_outs
@@ -190,9 +191,15 @@ void pattern_overlay(fifo<pixel_t>& pout,
     for (int y = 0; y < HEIGHT; y++) {
         for (int x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
-            p.data.range(23, 16) = (x < 400) ? 0xff : 0x00; // R
-            p.data.range(15,  8) = (400 <= x && x < 800) ? 0xff : 0x00; // G
-            p.data.range( 7,  0) = (800 <= x) ? 0xff : 0x00; // B
+            pixel_t ptmp = pin.read();
+            ap_uint<24> d = ptmp.data;
+            if (y < 600) {
+                p.data = d;
+            } else {
+                p.data.range(23, 16) = (x < 400) ? 0xff : 0x00; // R
+                p.data.range(15,  8) = (800 <= x) ? 0xff : 0x00; // B
+                p.data.range( 7,  0) = (400 <= x && x < 800) ? 0xff : 0x00; // G
+            }
             p.user[0] = (x == 0 && y == 0);
             p.last    = (x == WIDTH - 1);
             pout.write(p);
