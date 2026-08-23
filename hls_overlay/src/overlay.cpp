@@ -116,8 +116,8 @@ constexpr int PARAM_SIZES[] = {
 
 constexpr int PARAM_BLOCK_COUNT = sizeof(PARAM_SIZES) / sizeof(PARAM_SIZES[0]);
 
-// void write_params(ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& ins) {
-void write_params(ap_uint<64> params[PARAM_COUNT]) {
+// void write_params(const ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& ins) {
+void write_params(const ap_uint<64> params[PARAM_COUNT]) {
     int ptr = 0;
 	axis_data64 pkt;
     for (int j = 0; j < PARAM_BLOCK_COUNT; j++) {
@@ -172,6 +172,17 @@ void read_detects(Detect detects[MAX_DETECTS], ap_uint<8>& count) {
     }
 }
 
+void yunet(const ap_uint<64> params[PARAM_COUNT],
+    Detect detects[MAX_DETECTS], ap_uint<8>& detect_count)
+{
+#pragma HLS dataflow
+
+    // write_params(params, yunet_ins);
+    // read_detects(yunet_outs, detects, detect_count);
+    write_params(params);
+    read_detects(detects, detect_count);
+}
+
 void draw_border(const Detect detects[MAX_DETECTS], const ap_uint<8> count,
     const int x, const int y, ap_uint<24>& pix)
 {
@@ -207,12 +218,12 @@ void draw_border(const Detect detects[MAX_DETECTS], const ap_uint<8> count,
         pix = 0x00ffff;
     } else if (box_border) {
         pix = 0x0000ff;
-    }
+    }    
 }
 
 void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
     // fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
-    ap_uint<64> params[PARAM_COUNT])
+    const ap_uint<64> params[PARAM_COUNT])
 {
 #pragma HLS interface axis port=pin
 #pragma HLS interface axis port=pout
@@ -238,7 +249,7 @@ void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
         for (int x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
             ap_uint<24> pix = pin.read().data;
-            // draw_border(detects, detect_count, x, y, pix);
+            draw_border(detects, detect_count, x, y, pix);
             p.data = pix;
             p.user[0] = (x == 0 && y == 0);
             p.last    = (x == WIDTH - 1);
@@ -257,10 +268,5 @@ void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
     //     }
     // }
 
-#pragma HLS dataflow
-
-    // write_params(params, yunet_ins);
-    // read_detects(yunet_outs, detects, detect_count);
-    write_params(params);
-    read_detects(detects, detect_count);
+    yunet(params, detects, detect_count);
 }
