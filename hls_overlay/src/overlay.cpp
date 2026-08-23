@@ -115,7 +115,7 @@ constexpr int PARAM_SIZES[] = {
 };
 
 constexpr int PARAM_BLOCK_COUNT = sizeof(PARAM_SIZES) / sizeof(PARAM_SIZES[0]);
-        
+
 // void write_params(ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& ins) {
 void write_params(ap_uint<64> params[PARAM_COUNT]) {
     int ptr = 0;
@@ -134,15 +134,23 @@ void write_params(ap_uint<64> params[PARAM_COUNT]) {
 void read_detects(Detect detects[MAX_DETECTS], ap_uint<8>& count) {
     count = 6; //outs.read().data;
 
-    detects[0] = Detect{ 48, 36, 84, 84, 49153, { 56, 67, 61, 57, 70 }, { 53, 51, 59, 66, 66 } };
-    detects[1] = Detect{ 110, 65, 146, 113, 45942, { 126, 138, 134, 129, 138 }, { 83, 83, 89, 98, 98 } };
-    detects[2] = Detect{ 11, 121, 47, 157, 45942, { 24, 35, 30, 24, 35 }, { 136, 136, 139, 147, 145 } };
-    detects[3] = Detect{ 13, 33, 35, 63, 42237, { 19, 25, 22, 19, 27 }, { 43, 43, 49, 54, 54 } };
-    detects[4] = Detect{ 131, 38, 157, 68, 38874, { 144, 150, 150, 145, 154 }, { 49, 49, 53, 59, 59 } };
-    detects[5] = Detect{ 70, 97, 106, 145, 35739, { 88, 96, 93, 88, 96 }, { 115, 115, 121, 130, 130 } };
+    detects[0] = Detect{ 48, 36, 84, 84, 49153, { 56, 53, 67, 51, 61, 59, 57, 66, 70, 66 } };
+    detects[1] = Detect{ 110, 65, 146, 113, 45942, { 126, 83, 138, 83, 134, 89, 129, 98, 138, 98 } };
+    detects[2] = Detect{ 11, 121, 47, 157, 45942, { 24, 136, 35, 136, 30, 139, 24, 147, 35, 145 } };
+    detects[3] = Detect{ 13, 33, 35, 63, 42237, { 19, 43, 25, 43, 22, 49, 19, 54, 27, 54 } };
+    detects[4] = Detect{ 131, 38, 157, 68, 38874, { 144, 49, 150, 49, 150, 53, 145, 59, 154, 59 } };
+    detects[5] = Detect{ 70, 97, 106, 145, 35739, { 88, 115, 96, 115, 93, 121, 88, 130, 96, 130 } };
 
-    // for (int i = 0; i < MAX_DETECTS; i++) {
-    //     if (i < count) {
+    for (int i = 0; i < MAX_DETECTS; i++) {
+        if (i < count) {
+            detects[i].x1 = detects[i].x1 * 8;
+            detects[i].y1 = detects[i].y1 * 9 / 2;
+            detects[i].x2 = detects[i].x1 * 8;
+            detects[i].y2 = detects[i].y1 * 9 / 2;
+            for (int k = 0; k < 10; k += 2) {
+                detects[i].kps[k] = detects[i].kps[k] * 8;
+                detects[i].kps[k + 1] = detects[i].kps[k + 1] * 9 / 2;
+            }
     //         detects[i].x1 = outs.read().data;
     //         detects[i].y1 = outs.read().data;
     //         detects[i].x2 = outs.read().data;
@@ -160,8 +168,46 @@ void read_detects(Detect detects[MAX_DETECTS], ap_uint<8>& count) {
     //         detects[i].kps_y[3] = outs.read().data;
     //         detects[i].kps_x[4] = outs.read().data;
     //         detects[i].kps_y[4] = outs.read().data;
-    //     }
-    // }
+        }
+    }
+}
+
+void draw_border(const Detect detects[MAX_DETECTS], const ap_uint<8> count,
+    const int x, const int y, ap_uint<24>& pix)
+{
+    bool box_border = false;
+    bool landmark = false;
+
+    for (int i = 0; i < MAX_DETECTS; i++) {
+        if (i < count) {
+            if ((x >= detects[i].x1 - 4 && x < detects[i].x1 &&
+                y >= detects[i].y1 - 4 && y <= detects[i].y2 + 4) ||
+                (x > detects[i].x2 && x <= detects[i].x2 + 4 &&
+                y >= detects[i].y1 - 4 && y <= detects[i].y2 + 4) ||
+                (y >= detects[i].y1 - 4 && y < detects[i].y1 &&
+                x >= detects[i].x1 && x <= detects[i].x2) ||
+                (y > detects[i].y2 && y <= detects[i].y2 + 4 &&
+                x >= detects[i].x1 && x <= detects[i].x2))
+            {
+                box_border = true;
+            }
+
+            for (int k = 0; k < 10; k += 2) {
+                if (x >= detects[i].kps[k] - 4 &&
+                    x <= detects[i].kps[k] + 4 &&
+                    y >= detects[i].kps[k + 1] - 4 &&
+                    y <= detects[i].kps[k + 1] + 4) {
+                    landmark = true;
+                }
+            }
+        }
+    }
+
+    if (landmark) {
+        pix = 0x00ffff;
+    } else if (box_border) {
+        pix = 0x0000ff;
+    }
 }
 
 void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
@@ -192,14 +238,8 @@ void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
         for (int x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
             pixel_t ptmp = pin.read();
-            ap_uint<24> d = ptmp.data;
-            if (y < 600) {
-                p.data = d;
-            } else {
-                p.data.range(23, 16) = (x < 400) ? 0xff : 0x00; // R
-                p.data.range(15,  8) = (800 <= x) ? 0xff : 0x00; // B
-                p.data.range( 7,  0) = (400 <= x && x < 800) ? 0xff : 0x00; // G
-            }
+            ap_uint<24> pix = ptmp.data;
+            draw_border(detects, detect_count, x, y, pix);
             p.user[0] = (x == 0 && y == 0);
             p.last    = (x == WIDTH - 1);
             pout.write(p);

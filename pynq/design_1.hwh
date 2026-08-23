@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<EDKSYSTEM EDWVERSION="1.2" TIMESTAMP="Sun Aug 23 16:04:23 2026" VIVADOVERSION="2025.2.1">
+<EDKSYSTEM EDWVERSION="1.2" TIMESTAMP="Sun Aug 23 17:13:16 2026" VIVADOVERSION="2025.2.1">
 
   <SYSTEMINFO ARCH="zynq" BOARD="www.digilentinc.com:pynq-z1:part0:1.0" DEVICE="7z020" NAME="design_1" PACKAGE="clg400" SPEEDGRADE="-1"/>
 
@@ -7649,7 +7649,7 @@
       </PORTS>
       <BUSINTERFACES/>
     </MODULE>
-    <MODULE COREREVISION="2114754099" FULLNAME="/pattern_overlay_0" HWVERSION="1.0" INSTANCE="pattern_overlay_0" IPTYPE="PERIPHERAL" IS_ENABLE="1" MODCLASS="PERIPHERAL" MODTYPE="pattern_overlay" VLNV="xilinx.com:hls:pattern_overlay:1.0">
+    <MODULE COREREVISION="2114754190" FULLNAME="/pattern_overlay_0" HWVERSION="1.0" INSTANCE="pattern_overlay_0" IPTYPE="PERIPHERAL" IS_ENABLE="1" MODCLASS="PERIPHERAL" MODTYPE="pattern_overlay" VLNV="xilinx.com:hls:pattern_overlay:1.0">
       <DOCUMENTS/>
       <ADDRESSBLOCKS>
         <ADDRESSBLOCK ACCESS="read-write" INTERFACE="s_axi_ctrl" NAME="Reg" RANGE="65536" USAGE="register">
@@ -7923,11 +7923,11 @@
         <PARAMETER NAME="C_S_AXI_CTRL_DATA_WIDTH" VALUE="32"/>
         <PARAMETER NAME="C_M_AXI_GMEM_ENABLE_ID_PORTS" VALUE="true"/>
         <PARAMETER NAME="C_M_AXI_GMEM_ENABLE_USER_PORTS" VALUE="false"/>
-        <PARAMETER NAME="Component_Name" VALUE="design_1_pattern_overlay_0_4"/>
-        <PARAMETER NAME="II" VALUE="921600"/>
+        <PARAMETER NAME="Component_Name" VALUE="design_1_pattern_overlay_0_6"/>
+        <PARAMETER NAME="II" VALUE="921675"/>
         <PARAMETER NAME="clk_period" VALUE="10"/>
         <PARAMETER NAME="combinational" VALUE="0"/>
-        <PARAMETER NAME="latency" VALUE="921602"/>
+        <PARAMETER NAME="latency" VALUE="921674"/>
         <PARAMETER NAME="machine" VALUE="64"/>
         <PARAMETER NAME="EDK_IPTYPE" VALUE="PERIPHERAL"/>
         <PARAMETER NAME="C_S_AXI_CTRL_BASEADDR" VALUE="0x40000000"/>
@@ -9521,8 +9521,8 @@
             <CONNECTION INSTANCE="axi_vdma_0" PORT="s_axis_s2mm_aclk"/>
             <CONNECTION INSTANCE="axi_intc_0" PORT="s_axi_aclk"/>
             <CONNECTION INSTANCE="clk_wiz_1" PORT="clk_in1"/>
-            <CONNECTION INSTANCE="pattern_overlay_0" PORT="ap_clk"/>
             <CONNECTION INSTANCE="v_vid_in_axi4s_0" PORT="aclk"/>
+            <CONNECTION INSTANCE="pattern_overlay_0" PORT="ap_clk"/>
           </CONNECTIONS>
         </PORT>
         <PORT DIR="O" NAME="FCLK_RESET0_N" POLARITY="ACTIVE_LOW" SIGIS="rst" SIGNAME="processing_system7_0_FCLK_RESET0_N">
@@ -10308,8 +10308,8 @@
             <CONNECTION INSTANCE="axi_mem_intercon_1" PORT="S01_ARESETN"/>
             <CONNECTION INSTANCE="v_axi4s_vid_out_0" PORT="aresetn"/>
             <CONNECTION INSTANCE="axi_intc_0" PORT="s_axi_aresetn"/>
-            <CONNECTION INSTANCE="pattern_overlay_0" PORT="ap_rst_n"/>
             <CONNECTION INSTANCE="v_vid_in_axi4s_0" PORT="aresetn"/>
+            <CONNECTION INSTANCE="pattern_overlay_0" PORT="ap_rst_n"/>
           </CONNECTIONS>
         </PORT>
         <PORT DIR="O" LEFT="0" NAME="peripheral_reset" POLARITY="ACTIVE_HIGH" RIGHT="0" SIGIS="rst" SIGNAME="rst_ps7_0_100M_peripheral_reset">

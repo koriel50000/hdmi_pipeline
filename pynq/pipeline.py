@@ -288,7 +288,7 @@ def main():
             sys.stdout.write(f"\rFPS: {fps:.2f} {frame_processed}")
             sys.stdout.flush()
             
-            if elapsed > 30:
+            if elapsed > 60:
                 break
     finally:
         video_finalize(vdma, fbuf0, fbuf1, fbuf2)
