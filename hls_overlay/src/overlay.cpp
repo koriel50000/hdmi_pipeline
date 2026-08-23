@@ -237,9 +237,9 @@ void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
     for (int y = 0; y < HEIGHT; y++) {
         for (int x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
-            pixel_t ptmp = pin.read();
-            ap_uint<24> pix = ptmp.data;
+            ap_uint<24> pix = pin.read().data;
             draw_border(detects, detect_count, x, y, pix);
+            p.data = pix;
             p.user[0] = (x == 0 && y == 0);
             p.last    = (x == WIDTH - 1);
             pout.write(p);
