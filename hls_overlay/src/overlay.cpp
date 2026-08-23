@@ -141,19 +141,9 @@ void read_detects(Detect detects[MAX_DETECTS], ap_uint<8>& count) {
     detects[4] = Detect{ 131, 38, 157, 68, 38874, { 144, 49, 150, 49, 150, 53, 145, 59, 154, 59 } };
     detects[5] = Detect{ 70, 97, 106, 145, 35739, { 88, 115, 96, 115, 93, 121, 88, 130, 96, 130 } };
 
-    for (int i = 0; i < MAX_DETECTS; i++) {
-#pragma HLS pipeline 
-        if (i < count) {
-            detects[i].x1 = detects[i].x1 * 8;
-            detects[i].y1 = detects[i].y1 * 9 / 2;
-            detects[i].x2 = detects[i].x2 * 8;
-            detects[i].y2 = detects[i].y2 * 9 / 2;
-            detects[i].started = false;
-            detects[i].ended = false;
-            // for (int k = 0; k < 10; k += 2) {
-            //     detects[i].kps[k] = detects[i].kps[k] * 8;
-            //     detects[i].kps[k + 1] = detects[i].kps[k + 1] * 9 / 2;
-            // }
+//     for (int i = 0; i < MAX_DETECTS; i++) {
+// #pragma HLS pipeline 
+//         if (i < count) {
     //         detects[i].x1 = outs.read().data;
     //         detects[i].y1 = outs.read().data;
     //         detects[i].x2 = outs.read().data;
@@ -171,8 +161,8 @@ void read_detects(Detect detects[MAX_DETECTS], ap_uint<8>& count) {
     //         detects[i].kps_y[3] = outs.read().data;
     //         detects[i].kps_x[4] = outs.read().data;
     //         detects[i].kps_y[4] = outs.read().data;
-        }
-    }
+        // }
+    // }
 }
 
 void yunet(const ap_uint<64> params[PARAM_COUNT],
@@ -235,11 +225,24 @@ void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
     p.id = 0;
     p.dest = 0;
 
+    int cy = -1;
+    int dy = HEIGHT;
     for (int y = 0; y < HEIGHT; y++) {
+        dy -= 160;
+        bool vactive = (dy <= 0);
+        if (vactive) {
+            dy += HEIGHT;                
+            cy++;
+        }
+        int cx = -1;
         for (int x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
             ap_uint<24> pix = pin.read().data;
-            draw_border(detects, detect_count, x, y, pix);
+            bool hactive = ((x & 0x7) == 0);
+            if (vactive && hactive) {
+                cx++;
+                draw_border(detects, detect_count, cx, cy, pix);            
+            }
             p.data = pix;
             p.user[0] = (x == 0 && y == 0);
             p.last    = (x == WIDTH - 1);

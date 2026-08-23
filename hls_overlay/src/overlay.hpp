@@ -19,12 +19,12 @@ template <typename T>
 using fifo = hls::stream<T>;
 
 struct Detect {
-    uint16_t x1;
-    uint16_t y1;
-    uint16_t x2;
-    uint16_t y2;
+    ap_uint<8> x1;
+    ap_uint<8> y1;
+    ap_uint<8> x2;
+    ap_uint<8> y2;
     uint16_t score;
-    uint16_t kps[10];
+    ap_uint<8> kps[10];
     bool started;
     bool ended;
 };
