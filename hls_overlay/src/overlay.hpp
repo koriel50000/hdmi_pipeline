@@ -25,6 +25,8 @@ struct Detect {
     uint16_t y2;
     uint16_t score;
     uint16_t kps[10];
+    bool started;
+    bool ended;
 };
 
 extern "C" {

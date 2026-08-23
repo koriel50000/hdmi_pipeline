@@ -148,6 +148,8 @@ void read_detects(Detect detects[MAX_DETECTS], ap_uint<8>& count) {
             detects[i].y1 = detects[i].y1 * 9 / 2;
             detects[i].x2 = detects[i].x2 * 8;
             detects[i].y2 = detects[i].y2 * 9 / 2;
+            detects[i].started = false;
+            detects[i].ended = false;
             // for (int k = 0; k < 10; k += 2) {
             //     detects[i].kps[k] = detects[i].kps[k] * 8;
             //     detects[i].kps[k + 1] = detects[i].kps[k + 1] * 9 / 2;
@@ -184,43 +186,29 @@ void yunet(const ap_uint<64> params[PARAM_COUNT],
     read_detects(detects, detect_count);
 }
 
-void draw_border(const Detect detects[MAX_DETECTS], const ap_uint<8> count,
+void draw_border(Detect detects[MAX_DETECTS], const ap_uint<8> count,
     const int x, const int y, ap_uint<24>& pix)
 {
-    bool box_border = false;
-    bool landmark = false;
-
     for (int i = 0; i < MAX_DETECTS; i++) {
 #pragma HLS pipeline
-        if (i < count) {
-            if ((x >= detects[i].x1 - 4 && x < detects[i].x1 &&
-                y >= detects[i].y1 - 4 && y <= detects[i].y2 + 4) ||
-                (x > detects[i].x2 && x <= detects[i].x2 + 4 &&
-                y >= detects[i].y1 - 4 && y <= detects[i].y2 + 4) ||
-                (y >= detects[i].y1 - 4 && y < detects[i].y1 &&
-                x >= detects[i].x1 && x <= detects[i].x2) ||
-                (y > detects[i].y2 && y <= detects[i].y2 + 4 &&
-                x >= detects[i].x1 && x <= detects[i].x2))
-            {
-                box_border = true;
+        if (i < count && !detects[i].ended) {
+            if (!detects[i].started) {
+                if (y == detects[i].y1 && x == detects[i].x1) {
+                    detects[i].started = true;
+                    pix = 0x0000ff;
+                }
+            } else {
+                if (y == detects[i].y2 && x == detects[i].x2) {
+                    detects[i].ended = true;
+                    pix = 0x0000ff;
+                } else if (y < detects[i].y1 + 2 || detects[i].y2 - 2 < y ||
+                    x < detects[i].x1 + 2 || detects[i].x2 - 2 < x)
+                {
+                    pix = 0x0000ff;
+                }
             }
-
-            // for (int k = 0; k < 10; k += 2) {
-            //     if (x >= detects[i].kps[k] - 4 &&
-            //         x <= detects[i].kps[k] + 4 &&
-            //         y >= detects[i].kps[k + 1] - 4 &&
-            //         y <= detects[i].kps[k + 1] + 4) {
-            //         landmark = true;
-            //     }
-            // }
         }
     }
-
-    if (landmark) {
-        pix = 0x00ffff;
-    } else if (box_border) {
-        pix = 0x0000ff;
-    }    
 }
 
 void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
