@@ -145,8 +145,8 @@ void read_detects(Detect detects[MAX_DETECTS], ap_uint<8>& count) {
         if (i < count) {
             detects[i].x1 = detects[i].x1 * 8;
             detects[i].y1 = detects[i].y1 * 9 / 2;
-            detects[i].x2 = detects[i].x1 * 8;
-            detects[i].y2 = detects[i].y1 * 9 / 2;
+            detects[i].x2 = detects[i].x2 * 8;
+            detects[i].y2 = detects[i].y2 * 9 / 2;
             for (int k = 0; k < 10; k += 2) {
                 detects[i].kps[k] = detects[i].kps[k] * 8;
                 detects[i].kps[k + 1] = detects[i].kps[k + 1] * 9 / 2;
@@ -238,7 +238,7 @@ void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
         for (int x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
             ap_uint<24> pix = pin.read().data;
-            draw_border(detects, detect_count, x, y, pix);
+            // draw_border(detects, detect_count, x, y, pix);
             p.data = pix;
             p.user[0] = (x == 0 && y == 0);
             p.last    = (x == WIDTH - 1);
