@@ -7,7 +7,7 @@ constexpr int WIDTH = 1280;
 constexpr int HEIGHT = 720;
 
 constexpr int PARAM_COUNT = 13440;
-constexpr int MAX_DETECTS = 64;
+constexpr int MAX_DETECTS = 32;
 
 // @see ug1399, HLS Programmers Guide > Customizing-AXI4-Stream-Interfaces
 using axis_data64 = ap_axis<64, 0, 0, 0, (AXIS_ENABLE_DATA | AXIS_ENABLE_LAST), true>;

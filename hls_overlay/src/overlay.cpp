@@ -142,15 +142,16 @@ void read_detects(Detect detects[MAX_DETECTS], ap_uint<8>& count) {
     detects[5] = Detect{ 70, 97, 106, 145, 35739, { 88, 115, 96, 115, 93, 121, 88, 130, 96, 130 } };
 
     for (int i = 0; i < MAX_DETECTS; i++) {
+#pragma HLS pipeline 
         if (i < count) {
             detects[i].x1 = detects[i].x1 * 8;
             detects[i].y1 = detects[i].y1 * 9 / 2;
             detects[i].x2 = detects[i].x2 * 8;
             detects[i].y2 = detects[i].y2 * 9 / 2;
-            for (int k = 0; k < 10; k += 2) {
-                detects[i].kps[k] = detects[i].kps[k] * 8;
-                detects[i].kps[k + 1] = detects[i].kps[k + 1] * 9 / 2;
-            }
+            // for (int k = 0; k < 10; k += 2) {
+            //     detects[i].kps[k] = detects[i].kps[k] * 8;
+            //     detects[i].kps[k + 1] = detects[i].kps[k + 1] * 9 / 2;
+            // }
     //         detects[i].x1 = outs.read().data;
     //         detects[i].y1 = outs.read().data;
     //         detects[i].x2 = outs.read().data;
@@ -190,6 +191,7 @@ void draw_border(const Detect detects[MAX_DETECTS], const ap_uint<8> count,
     bool landmark = false;
 
     for (int i = 0; i < MAX_DETECTS; i++) {
+#pragma HLS pipeline
         if (i < count) {
             if ((x >= detects[i].x1 - 4 && x < detects[i].x1 &&
                 y >= detects[i].y1 - 4 && y <= detects[i].y2 + 4) ||
@@ -203,14 +205,14 @@ void draw_border(const Detect detects[MAX_DETECTS], const ap_uint<8> count,
                 box_border = true;
             }
 
-            for (int k = 0; k < 10; k += 2) {
-                if (x >= detects[i].kps[k] - 4 &&
-                    x <= detects[i].kps[k] + 4 &&
-                    y >= detects[i].kps[k + 1] - 4 &&
-                    y <= detects[i].kps[k + 1] + 4) {
-                    landmark = true;
-                }
-            }
+            // for (int k = 0; k < 10; k += 2) {
+            //     if (x >= detects[i].kps[k] - 4 &&
+            //         x <= detects[i].kps[k] + 4 &&
+            //         y >= detects[i].kps[k + 1] - 4 &&
+            //         y <= detects[i].kps[k + 1] + 4) {
+            //         landmark = true;
+            //     }
+            // }
         }
     }
 
