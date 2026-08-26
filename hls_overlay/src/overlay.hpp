@@ -7,7 +7,7 @@ constexpr int WIDTH = 1280;
 constexpr int HEIGHT = 720;
 
 constexpr int PARAM_COUNT = 13440;
-constexpr int MAX_DETECTS = 32;
+constexpr int MAX_DETECTIONS = 32;
 constexpr int MAX_LINE_SPRITES = 8;
 
 // @see ug1399, HLS Programmers Guide > Customizing-AXI4-Stream-Interfaces

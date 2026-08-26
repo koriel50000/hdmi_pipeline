@@ -129,8 +129,8 @@ void write_params(const ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& ins)
     }
 }
 
-// void read_detects(Detect detects[MAX_DETECTS], ap_uint<8>& count) {
-void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTS], ap_uint<8>& count) {
+// void read_detects(Detect detects[MAX_DETECTIONS], ap_uint<8>& count) {
+void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], ap_uint<8>& count) {
     count = outs.read().data;
 
     // detects[0] = Detect{ 48, 36, 84, 84, 49153, { 56, 53, 67, 51, 61, 59, 57, 66, 70, 66 } };
@@ -140,7 +140,7 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTS], ap_uint<8
     // detects[4] = Detect{ 131, 38, 157, 68, 38874, { 144, 49, 150, 49, 150, 53, 145, 59, 154, 59 } };
     // detects[5] = Detect{ 70, 97, 106, 145, 35739, { 88, 115, 96, 115, 93, 121, 88, 130, 96, 130 } };
 
-    for (int i = 0; i < MAX_DETECTS; i++) {
+    for (int i = 0; i < MAX_DETECTIONS; i++) {
 #pragma HLS pipeline 
         if (i < count) {
             // detects[i].x1 = detects[i].x1 * 8;
@@ -163,7 +163,7 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTS], ap_uint<8
 
 void yunet(const ap_uint<64> params[PARAM_COUNT],
     fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
-    Detect detects[MAX_DETECTS], ap_uint<8>& detect_count)
+    Detect detects[MAX_DETECTIONS], ap_uint<8>& detect_count)
 {
 #pragma HLS dataflow
 
@@ -173,13 +173,13 @@ void yunet(const ap_uint<64> params[PARAM_COUNT],
     // read_detects(detects, detect_count);
 }
 
-void select_line_sprites(const Detect detects[MAX_DETECTS], const ap_uint<8> detect_count,
+void select_line_sprites(const Detect detects[MAX_DETECTIONS], const ap_uint<8> detect_count,
     const uint16_t y, LineSprite line_sprites[MAX_LINE_SPRITES])
 {
 #pragma HLS inline
 
     int count = 0;
-    for (int i = 0; i < MAX_DETECTS; i++) {
+    for (int i = 0; i < MAX_DETECTIONS; i++) {
 #pragma HLS pipeline
         if (i < detect_count && count < MAX_LINE_SPRITES) {
             if (detects[i].y1 <= y && y <= detects[i].y2) {
@@ -220,7 +220,7 @@ void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
 #pragma HLS interface s_axilite port=params bundle=ctrl
 #pragma HLS interface s_axilite port=return bundle=ctrl
 
-    static Detect detects[MAX_DETECTS];
+    static Detect detects[MAX_DETECTIONS];
     static ap_uint<8> detect_count = 0;
 
     LineSprite line_sprites[MAX_LINE_SPRITES];
