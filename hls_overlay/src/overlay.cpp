@@ -258,6 +258,10 @@ void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
         }
     }
 
+#pragma HLS dataflow
+
+    write_params(params, yunet_ins);
+    read_detects(yunet_outs, detects, detect_count);
     // yunet(params, detects, detect_count);
-    yunet(params, yunet_ins, yunet_outs, detects, detect_count);
+    // yunet(params, yunet_ins, yunet_outs, detects, detect_count);
 }

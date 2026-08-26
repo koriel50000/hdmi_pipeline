@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<EDKSYSTEM EDWVERSION="1.2" TIMESTAMP="Wed Aug 26 19:21:18 2026" VIVADOVERSION="2025.2.1">
+<EDKSYSTEM EDWVERSION="1.2" TIMESTAMP="Wed Aug 26 19:50:37 2026" VIVADOVERSION="2025.2.1">
 
   <SYSTEMINFO ARCH="zynq" BOARD="www.digilentinc.com:pynq-z1:part0:1.0" DEVICE="7z020" NAME="design_1" PACKAGE="clg400" SPEEDGRADE="-1"/>
 
@@ -7625,7 +7625,7 @@
       </PORTS>
       <BUSINTERFACES/>
     </MODULE>
-    <MODULE COREREVISION="2114758630" FULLNAME="/pattern_overlay_0" HWVERSION="1.0" INSTANCE="pattern_overlay_0" IPTYPE="PERIPHERAL" IS_ENABLE="1" MODCLASS="PERIPHERAL" MODTYPE="pattern_overlay" VLNV="xilinx.com:hls:pattern_overlay:1.0">
+    <MODULE COREREVISION="2114758665" FULLNAME="/pattern_overlay_0" HWVERSION="1.0" INSTANCE="pattern_overlay_0" IPTYPE="PERIPHERAL" IS_ENABLE="1" MODCLASS="PERIPHERAL" MODTYPE="pattern_overlay" VLNV="xilinx.com:hls:pattern_overlay:1.0">
       <DOCUMENTS/>
       <ADDRESSBLOCKS>
         <ADDRESSBLOCK ACCESS="read-write" INTERFACE="s_axi_ctrl" NAME="Reg" RANGE="65536" USAGE="register">
@@ -7899,7 +7899,7 @@
         <PARAMETER NAME="C_S_AXI_CTRL_DATA_WIDTH" VALUE="32"/>
         <PARAMETER NAME="C_M_AXI_GMEM_ENABLE_ID_PORTS" VALUE="true"/>
         <PARAMETER NAME="C_M_AXI_GMEM_ENABLE_USER_PORTS" VALUE="false"/>
-        <PARAMETER NAME="Component_Name" VALUE="design_1_pattern_overlay_0_18"/>
+        <PARAMETER NAME="Component_Name" VALUE="design_1_pattern_overlay_0_19"/>
         <PARAMETER NAME="II" VALUE="26786 ~ 56699"/>
         <PARAMETER NAME="clk_period" VALUE="10"/>
         <PARAMETER NAME="combinational" VALUE="0"/>
@@ -8122,19 +8122,7 @@
           </CONNECTIONS>
         </PORT>
         <PORT DIR="I" LEFT="95" NAME="pin_TDATA" RIGHT="0" SIGIS="undef"/>
-        <PORT DIR="O" NAME="pin_TREADY" SIGIS="undef"/>
-        <PORT DIR="I" NAME="pin_TVALID" SIGIS="undef" SIGNAME="zero_dout">
-          <CONNECTIONS>
-            <CONNECTION INSTANCE="zero" PORT="dout"/>
-          </CONNECTIONS>
-        </PORT>
         <PORT DIR="I" LEFT="95" NAME="pout_TDATA" RIGHT="0" SIGIS="undef"/>
-        <PORT DIR="O" NAME="pout_TREADY" SIGIS="undef"/>
-        <PORT DIR="I" NAME="pout_TVALID" SIGIS="undef" SIGNAME="zero_dout">
-          <CONNECTIONS>
-            <CONNECTION INSTANCE="zero" PORT="dout"/>
-          </CONNECTIONS>
-        </PORT>
         <PORT DIR="I" LEFT="4" NAME="s_axi_ctrl_ARADDR" RIGHT="0" SIGIS="undef" SIGNAME="axi_smc_M02_AXI_araddr">
           <CONNECTIONS>
             <CONNECTION INSTANCE="axi_smc" PORT="M02_AXI_araddr"/>
@@ -8391,12 +8379,12 @@
             <PORTMAP LOGICAL="WVALID" PHYSICAL="m_axi_gmem_WVALID"/>
           </PORTMAPS>
         </BUSINTERFACE>
-        <BUSINTERFACE BUSNAME="__NOC__" NAME="pin" TYPE="TARGET" VLNV="xilinx.com:interface:axis:1.0">
+        <BUSINTERFACE BUSNAME="__NOC__" NAME="pin" TYPE="INITIATOR" VLNV="xilinx.com:interface:axis:1.0">
           <PARAMETER NAME="CLK_DOMAIN" VALUE="design_1_processing_system7_0_0_FCLK_CLK0"/>
           <PARAMETER NAME="FREQ_HZ" VALUE="100000000"/>
           <PARAMETER NAME="HAS_TKEEP" VALUE="0"/>
           <PARAMETER NAME="HAS_TLAST" VALUE="0"/>
-          <PARAMETER NAME="HAS_TREADY" VALUE="1"/>
+          <PARAMETER NAME="HAS_TREADY" VALUE="0"/>
           <PARAMETER NAME="HAS_TSTRB" VALUE="0"/>
           <PARAMETER NAME="INSERT_VIP" VALUE="0"/>
           <PARAMETER NAME="LAYERED_METADATA" VALUE="undef"/>
@@ -8407,16 +8395,14 @@
           <PARAMETER NAME="TUSER_WIDTH" VALUE="0"/>
           <PORTMAPS>
             <PORTMAP LOGICAL="TDATA" PHYSICAL="pin_TDATA"/>
-            <PORTMAP LOGICAL="TREADY" PHYSICAL="pin_TREADY"/>
-            <PORTMAP LOGICAL="TVALID" PHYSICAL="pin_TVALID"/>
           </PORTMAPS>
         </BUSINTERFACE>
-        <BUSINTERFACE BUSNAME="__NOC__" NAME="pout" TYPE="TARGET" VLNV="xilinx.com:interface:axis:1.0">
+        <BUSINTERFACE BUSNAME="__NOC__" NAME="pout" TYPE="INITIATOR" VLNV="xilinx.com:interface:axis:1.0">
           <PARAMETER NAME="CLK_DOMAIN" VALUE="design_1_processing_system7_0_0_FCLK_CLK0"/>
           <PARAMETER NAME="FREQ_HZ" VALUE="100000000"/>
           <PARAMETER NAME="HAS_TKEEP" VALUE="0"/>
           <PARAMETER NAME="HAS_TLAST" VALUE="0"/>
-          <PARAMETER NAME="HAS_TREADY" VALUE="1"/>
+          <PARAMETER NAME="HAS_TREADY" VALUE="0"/>
           <PARAMETER NAME="HAS_TSTRB" VALUE="0"/>
           <PARAMETER NAME="INSERT_VIP" VALUE="0"/>
           <PARAMETER NAME="LAYERED_METADATA" VALUE="undef"/>
@@ -8427,8 +8413,6 @@
           <PARAMETER NAME="TUSER_WIDTH" VALUE="0"/>
           <PORTMAPS>
             <PORTMAP LOGICAL="TDATA" PHYSICAL="pout_TDATA"/>
-            <PORTMAP LOGICAL="TREADY" PHYSICAL="pout_TREADY"/>
-            <PORTMAP LOGICAL="TVALID" PHYSICAL="pout_TVALID"/>
           </PORTMAPS>
         </BUSINTERFACE>
         <BUSINTERFACE BUSNAME="pattern_overlay_0_yunet_ins" NAME="yunet_ins" TYPE="INITIATOR" VLNV="xilinx.com:interface:axis:1.0">
@@ -11143,24 +11127,6 @@
           </PORTMAPS>
         </BUSINTERFACE>
       </BUSINTERFACES>
-    </MODULE>
-    <MODULE COREREVISION="10" FULLNAME="/zero" HWVERSION="1.1" INSTANCE="zero" IPTYPE="PERIPHERAL" IS_ENABLE="1" MODCLASS="PERIPHERAL" MODTYPE="xlconstant" VLNV="xilinx.com:ip:xlconstant:1.1">
-      <DOCUMENTS/>
-      <PARAMETERS>
-        <PARAMETER NAME="CONST_VAL" VALUE="0x0"/>
-        <PARAMETER NAME="CONST_WIDTH" VALUE="1"/>
-        <PARAMETER NAME="Component_Name" VALUE="design_1_xlconstant_0_1"/>
-        <PARAMETER NAME="EDK_IPTYPE" VALUE="PERIPHERAL"/>
-      </PARAMETERS>
-      <PORTS>
-        <PORT DIR="O" LEFT="0" NAME="dout" RIGHT="0" SIGIS="undef" SIGNAME="zero_dout">
-          <CONNECTIONS>
-            <CONNECTION INSTANCE="pattern_overlay_0" PORT="pout_TVALID"/>
-            <CONNECTION INSTANCE="pattern_overlay_0" PORT="pin_TVALID"/>
-          </CONNECTIONS>
-        </PORT>
-      </PORTS>
-      <BUSINTERFACES/>
     </MODULE>
   </MODULES>
 

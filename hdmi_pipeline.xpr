@@ -114,8 +114,8 @@
         <CompFileExtendedInfo CompFileName="design_1.bd" FileRelPathName="ip\design_1_dvi2rgb_0_0\design_1_dvi2rgb_0_0.xci">
           <Proxy FileSetName="design_1_dvi2rgb_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="design_1.bd" FileRelPathName="ip\design_1_pattern_overlay_0_18\design_1_pattern_overlay_0_18.xci">
-          <Proxy FileSetName="design_1_pattern_overlay_0_18"/>
+        <CompFileExtendedInfo CompFileName="design_1.bd" FileRelPathName="ip\design_1_pattern_overlay_0_19\design_1_pattern_overlay_0_19.xci">
+          <Proxy FileSetName="design_1_pattern_overlay_0_19"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="design_1.bd" FileRelPathName="ip\design_1_processing_system7_0_0\design_1_processing_system7_0_0.xci">
           <Proxy FileSetName="design_1_processing_system7_0_0"/>
@@ -270,9 +270,9 @@
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
-    <FileSet Name="design_1_pattern_overlay_0_18" Type="BlockSrcs" RelSrcDir="$PSRCDIR/design_1_pattern_overlay_0_18" RelGenDir="$PGENDIR/design_1_pattern_overlay_0_18">
+    <FileSet Name="design_1_pattern_overlay_0_19" Type="BlockSrcs" RelSrcDir="$PSRCDIR/design_1_pattern_overlay_0_19" RelGenDir="$PGENDIR/design_1_pattern_overlay_0_19">
       <Config>
-        <Option Name="TopModule" Val="design_1_pattern_overlay_0_18"/>
+        <Option Name="TopModule" Val="design_1_pattern_overlay_0_19"/>
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
@@ -408,9 +408,7 @@
     </Run>
     <Run Id="design_1_yunet_0_1_synth_1" Type="Ft3:Synth" SrcSet="design_1_yunet_0_1" Part="xc7z020clg400-1" ConstrsSet="design_1_yunet_0_1" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/design_1_yunet_0_1_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/design_1_yunet_0_1_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/design_1_yunet_0_1_synth_1" ParallelReportGen="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2025">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2025"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -418,11 +416,9 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="design_1_pattern_overlay_0_18_synth_1" Type="Ft3:Synth" SrcSet="design_1_pattern_overlay_0_18" Part="xc7z020clg400-1" ConstrsSet="design_1_pattern_overlay_0_18" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/design_1_pattern_overlay_0_18_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/design_1_pattern_overlay_0_18_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/design_1_pattern_overlay_0_18_synth_1" ParallelReportGen="true">
+    <Run Id="design_1_pattern_overlay_0_19_synth_1" Type="Ft3:Synth" SrcSet="design_1_pattern_overlay_0_19" Part="xc7z020clg400-1" ConstrsSet="design_1_pattern_overlay_0_19" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/design_1_pattern_overlay_0_19_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/design_1_pattern_overlay_0_19_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/design_1_pattern_overlay_0_19_synth_1" ParallelReportGen="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2025">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2025"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -620,9 +616,7 @@
     </Run>
     <Run Id="design_1_yunet_0_1_impl_1" Type="Ft2:EntireDesign" Part="xc7z020clg400-1" ConstrsSet="design_1_yunet_0_1" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="design_1_yunet_0_1_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/design_1_yunet_0_1_impl_1" AutoRQSDir="$PSRCDIR/utils_1/imports/design_1_yunet_0_1_impl_1" ParallelReportGen="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2025">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2025"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -637,11 +631,9 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="design_1_pattern_overlay_0_18_impl_1" Type="Ft2:EntireDesign" Part="xc7z020clg400-1" ConstrsSet="design_1_pattern_overlay_0_18" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="design_1_pattern_overlay_0_18_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/design_1_pattern_overlay_0_18_impl_1" AutoRQSDir="$PSRCDIR/utils_1/imports/design_1_pattern_overlay_0_18_impl_1" ParallelReportGen="true">
+    <Run Id="design_1_pattern_overlay_0_19_impl_1" Type="Ft2:EntireDesign" Part="xc7z020clg400-1" ConstrsSet="design_1_pattern_overlay_0_19" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="design_1_pattern_overlay_0_19_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/design_1_pattern_overlay_0_19_impl_1" AutoRQSDir="$PSRCDIR/utils_1/imports/design_1_pattern_overlay_0_19_impl_1" ParallelReportGen="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2025">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2025"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
