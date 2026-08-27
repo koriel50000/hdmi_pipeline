@@ -222,8 +222,12 @@ void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
     p.id = 0;
     p.dest = 0;
 
+    axis_data64 pkt;
+
+    uint16_t dy = HEIGHT / 2;
     for (uint16_t y = 0; y < HEIGHT; y++) {
         select_line_sprites(detects, detect_count, y, line_sprites);
+        dy -= INPUT_SIZE;
         for (uint16_t x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
             ap_uint<24> pix = pin.read().data;
@@ -232,18 +236,25 @@ void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
             p.user[0] = (x == 0 && y == 0);
             p.last    = (x == WIDTH - 1);
             pout.write(p);
+
+            if ((x & 0x7) == 4 && dy < 0) {
+                pkt.data = (pix.range(23, 20), pix.range(7, 4), pix.range(15, 12)); //images[ptr++];
+                pkt.last = (x == WIDTH - 4);
+                yunet_ins.write(pkt);
+                dy += HEIGHT;
+            }            
         }
     }
 
-    int ptr = 0;
-    axis_data64 pkt;
-    for (int j = 0; j < 160; j += 20) {
-        for (int i = 0; i < 160 * 20; i++) {
-            pkt.data = 0; //images[ptr++];
-            pkt.last = (i == 160 * 20 - 1);
-            yunet_ins.write(pkt);
-        }
-    }
+    // int ptr = 0;
+    // axis_data64 pkt;
+    // for (int j = 0; j < 160; j += 20) {
+    //     for (int i = 0; i < 160 * 20; i++) {
+    //         pkt.data = 0; //images[ptr++];
+    //         pkt.last = (i == 160 * 20 - 1);
+    //         yunet_ins.write(pkt);
+    //     }
+    // }
 
 #pragma HLS dataflow
 
