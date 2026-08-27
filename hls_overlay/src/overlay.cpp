@@ -1,4 +1,5 @@
 #include "overlay.hpp"
+#include "image.hpp"
 
 constexpr int PARAM_SIZES[] = {
     // YuNetBackbone stage0
@@ -161,18 +162,6 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], ap_uin
     }
 }
 
-void yunet(const ap_uint<64> params[PARAM_COUNT],
-    fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
-    Detect detects[MAX_DETECTIONS], ap_uint<8>& detect_count)
-{
-#pragma HLS dataflow
-
-    write_params(params, yunet_ins);
-    read_detects(yunet_outs, detects, detect_count);
-    // write_params(params);
-    // read_detects(detects, detect_count);
-}
-
 void select_line_sprites(const Detect detects[MAX_DETECTIONS], const ap_uint<8> detect_count,
     const uint16_t y, LineSprite line_sprites[MAX_LINE_SPRITES])
 {
@@ -234,25 +223,25 @@ void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
     p.id = 0;
     p.dest = 0;
 
-//     for (uint16_t y = 0; y < HEIGHT; y++) {
-//         select_line_sprites(detects, detect_count, y, line_sprites);
-//         for (uint16_t x = 0; x < WIDTH; x++) {
-// #pragma HLS pipeline
-//             ap_uint<24> pix = pin.read().data;
-//             set_sprite_pixel(line_sprites, x, pix);
-//             p.data = pix;
-//             p.user[0] = (x == 0 && y == 0);
-//             p.last    = (x == WIDTH - 1);
-//             pout.write(p);
-//         }
-//     }
+    for (uint16_t y = 0; y < HEIGHT; y++) {
+        select_line_sprites(detects, detect_count, y, line_sprites);
+        for (uint16_t x = 0; x < WIDTH; x++) {
+#pragma HLS pipeline
+            ap_uint<24> pix = pin.read().data;
+            set_sprite_pixel(line_sprites, x, pix);
+            p.data = pix;
+            p.user[0] = (x == 0 && y == 0);
+            p.last    = (x == WIDTH - 1);
+            pout.write(p);
+        }
+    }
 
     int ptr = 0;
     axis_data64 pkt;
     
     for (int j = 0; j < 160; j += 20) {
         for (int i = 0; i < 160 * 20; i++) {
-            pkt.data = 0x754; //images[ptr++];
+            pkt.data = images[ptr++];
             pkt.last = (i == 160 * 20 - 1);
             yunet_ins.write(pkt);
         }
@@ -262,6 +251,4 @@ void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
 
     write_params(params, yunet_ins);
     read_detects(yunet_outs, detects, detect_count);
-    // yunet(params, detects, detect_count);
-    // yunet(params, yunet_ins, yunet_outs, detects, detect_count);
 }
