@@ -119,15 +119,6 @@ constexpr int PARAM_BLOCK_COUNT = sizeof(PARAM_SIZES) / sizeof(PARAM_SIZES[0]);
 void write_params(const ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& ins) {
     int ptr = 0;
     axis_data64 pkt;
-    
-    for (int j = 0; j < 160; j += 20) {
-        for (int i = 0; i < 160 * 20; i++) {
-            pkt.data = 0; //images[ptr++];
-            pkt.last = (i == 160 * 20 - 1);
-            ins.write(pkt);
-        }
-    }
-
     for (int j = 0; j < PARAM_BLOCK_COUNT; j++) {
         for (int i = 0; i < PARAM_SIZES[j]; i++) {
 #pragma HLS pipeline 
@@ -241,6 +232,16 @@ void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
             p.user[0] = (x == 0 && y == 0);
             p.last    = (x == WIDTH - 1);
             pout.write(p);
+        }
+    }
+
+    int ptr = 0;
+    axis_data64 pkt;
+    for (int j = 0; j < 160; j += 20) {
+        for (int i = 0; i < 160 * 20; i++) {
+            pkt.data = 0; //images[ptr++];
+            pkt.last = (i == 160 * 20 - 1);
+            yunet_ins.write(pkt);
         }
     }
 
