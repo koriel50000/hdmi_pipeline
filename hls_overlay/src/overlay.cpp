@@ -120,22 +120,22 @@ void write_params(const ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& ins)
     int ptr = 0;
     axis_data64 pkt;
     
-    // for (int j = 0; j < 160; j += 20) {
-    //     for (int i = 0; i < 160 * 20; i++) {
-    //         pkt.data = 0; //images[ptr++];
-    //         pkt.last = (i == 160 * 20 - 1);
-    //         ins.write(pkt);
-    //     }
-    // }
-
-    for (int j = 0; j < PARAM_BLOCK_COUNT; j++) {
-        for (int i = 0; i < PARAM_SIZES[j]; i++) {
-#pragma HLS pipeline 
-            pkt.data = params[ptr++];
-            pkt.last = (i == PARAM_SIZES[j] - 1);
+    for (int j = 0; j < 160; j += 20) {
+        for (int i = 0; i < 160 * 20; i++) {
+            pkt.data = 0; //images[ptr++];
+            pkt.last = (i == 160 * 20 - 1);
             ins.write(pkt);
         }
     }
+
+//     for (int j = 0; j < PARAM_BLOCK_COUNT; j++) {
+//         for (int i = 0; i < PARAM_SIZES[j]; i++) {
+// #pragma HLS pipeline 
+//             pkt.data = params[ptr++];
+//             pkt.last = (i == PARAM_SIZES[j] - 1);
+//             ins.write(pkt);
+//         }
+//     }
 }
 
 // void read_detects(Detect detects[MAX_DETECTIONS], ap_uint<8>& count) {
