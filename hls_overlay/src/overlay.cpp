@@ -227,7 +227,12 @@ void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
     uint16_t dy = HEIGHT / 2;
     for (uint16_t y = 0; y < HEIGHT; y++) {
         select_line_sprites(detects, detect_count, y, line_sprites);
+        bool hactive = false;
         dy -= INPUT_SIZE;
+        if (dy < 0) {
+            dy += HEIGHT;
+            hactive = true;
+        }
         for (uint16_t x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
             ap_uint<24> pix = pin.read().data;
@@ -241,7 +246,6 @@ void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
                 pkt.data = (pix.range(23, 20), pix.range(7, 4), pix.range(15, 12)); //images[ptr++];
                 pkt.last = (x == WIDTH - 4);
                 yunet_ins.write(pkt);
-                dy += HEIGHT;
             }            
         }
     }
