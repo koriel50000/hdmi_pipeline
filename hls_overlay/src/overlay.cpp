@@ -242,7 +242,7 @@ void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
             p.last    = (x == WIDTH - 1);
             pout.write(p);
 
-            if ((x & 0x7) == 4 && dy < 0) {
+            if (hactive && (x & 0x7) == 4) {
                 pkt.data = (pix.range(23, 20), pix.range(7, 4), pix.range(15, 12)); //images[ptr++];
                 pkt.last = (x == WIDTH - 4);
                 yunet_ins.write(pkt);
