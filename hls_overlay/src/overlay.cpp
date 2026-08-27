@@ -128,14 +128,14 @@ void write_params(const ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& ins)
         }
     }
 
-//     for (int j = 0; j < PARAM_BLOCK_COUNT; j++) {
-//         for (int i = 0; i < PARAM_SIZES[j]; i++) {
-// #pragma HLS pipeline 
-//             pkt.data = params[ptr++];
-//             pkt.last = (i == PARAM_SIZES[j] - 1);
-//             ins.write(pkt);
-//         }
-//     }
+    for (int j = 0; j < PARAM_BLOCK_COUNT; j++) {
+        for (int i = 0; i < PARAM_SIZES[j]; i++) {
+#pragma HLS pipeline 
+            pkt.data = params[ptr++];
+            pkt.last = (i == PARAM_SIZES[j] - 1);
+            ins.write(pkt);
+        }
+    }
 }
 
 // void read_detects(Detect detects[MAX_DETECTIONS], ap_uint<8>& count) {
