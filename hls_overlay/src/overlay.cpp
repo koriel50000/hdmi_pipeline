@@ -231,8 +231,6 @@ void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
     p.id = 0;
     p.dest = 0;
 
-    axis_data64 pkt;
-
     // uint16_t dy = HEIGHT / 2;
     for (uint16_t y = 0; y < HEIGHT; y++) {
         select_line_sprites(detects, detect_count, y, line_sprites);
