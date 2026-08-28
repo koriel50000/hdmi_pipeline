@@ -122,6 +122,7 @@ void write_params(const ap_uint<64> params[PARAM_COUNT]) {
 
     for (int j = 0; j < 160; j += 20) {
         for (int i = 0; i < 160 * 20; i++) {
+#pragma HLS pipeline 
             pkt.data = 0; //images[ptr++];
             pkt.last = (i == 160 * 20 - 1);
             // ins.write(pkt);
@@ -217,10 +218,10 @@ void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
 #pragma HLS interface s_axilite port=params bundle=ctrl
 #pragma HLS interface s_axilite port=return bundle=ctrl
 
-    static Detect detects[MAX_DETECTIONS];
-    static ap_uint<8> detect_count = 0;
+    // static Detect detects[MAX_DETECTIONS];
+    // static ap_uint<8> detect_count = 0;
 
-    LineSprite line_sprites[MAX_LINE_SPRITES];
+    // LineSprite line_sprites[MAX_LINE_SPRITES];
 
     pixel_t p;
     p.data = 0;
@@ -233,7 +234,7 @@ void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
 
     // uint16_t dy = HEIGHT / 2;
     for (uint16_t y = 0; y < HEIGHT; y++) {
-        select_line_sprites(detects, detect_count, y, line_sprites);
+        // select_line_sprites(detects, detect_count, y, line_sprites);
         // bool hactive = false;
         // dy -= INPUT_SIZE;
         // if (dy < 0) {
@@ -243,7 +244,7 @@ void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
         for (uint16_t x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
             ap_uint<24> pix = pin.read().data;
-            set_sprite_pixel(line_sprites, x, pix);
+            // set_sprite_pixel(line_sprites, x, pix);
             p.data = pix;
             p.user[0] = (x == 0 && y == 0);
             p.last    = (x == WIDTH - 1);
@@ -262,5 +263,5 @@ void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
     // write_params(params, yunet_ins);
     // read_detects(yunet_outs, detects, detect_count);
     write_params(params);
-    read_detects(detects, detect_count);
+    // read_detects(detects, detect_count);
 }
