@@ -139,13 +139,13 @@ void select_line_sprites(const Detect detects[MAX_DETECTIONS], const ap_uint<8> 
     }
 }
 
-void set_sprite_pixel(const LineSprite line_sprites[MAX_LINE_SPRITES], const uint16_t x, ap_uint<24>& pix) {
+void set_sprite_pixel(const LineSprite line_sprites[MAX_LINE_SPRITES], const uint16_t x, pixel_t& pix) {
 #pragma HLS inline
 
     for (int i = 0; i < MAX_LINE_SPRITES; i++) {
 #pragma HLS unroll
         if (line_sprites[i].enable && line_sprites[i].x1 <= x && x <= line_sprites[i].x2) {
-            pix = 0x0000ff;
+            pix.data = 0x0000ff;
         }
     }
 }
@@ -224,15 +224,14 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
         }
         for (uint16_t x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
-            pixel_t p = pin.read();
-            ap_uint<24> pix = p.data;
+            pixel_t pix = pin.read();
             set_sprite_pixel(line_sprites, x, pix);
-            p.data = pix;
-            pout.write(p);
+            pout.write(pix);
 
             if (hactive && (x & 0x7) == 4) {
+                ap_uint<24> rbg = pix.data;
                 axis_data64 pkt;
-                pkt.data = (pix.range(23, 20), pix.range(7, 4), pix.range(15, 12));
+                pkt.data = (rbg.range(23, 20), rbg.range(7, 4), rbg.range(15, 12));
                 pkt.last = (x == WIDTH - 4);
                 yunet_ins.write(pkt);
             }
