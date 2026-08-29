@@ -151,55 +151,12 @@ void set_sprite_pixel(const LineSprite line_sprites[MAX_LINE_SPRITES], const uin
 }
 
 // void write_params(const ap_uint<64> params[PARAM_COUNT]) {
-void overlay_and_write_params(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
-    const Detect detects[MAX_DETECTIONS], const ap_uint<8> detect_count,
-    const ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& yunet_ins)
-{
-    // LineSprite line_sprites[MAX_LINE_SPRITES];
-
-    pixel_t p;
-    p.data = 0;
-    p.keep = 0x7;
-    p.strb = 0x7;
-    p.user = 0;
-    p.last = 0;
-    p.id = 0;
-    p.dest = 0;
-
-    axis_data64 pkt;
-    p.data = 0;
-    p.last = 0;
-
-    int16_t dy = HEIGHT / 2;
-    for (uint16_t y = 0; y < HEIGHT; y++) {
-        // select_line_sprites(detects, detect_count, y, line_sprites);
-        bool hactive = false;
-        dy -= INPUT_SIZE;
-        if (dy < 0) {
-            dy += HEIGHT;
-            hactive = true;
-        }
-        for (uint16_t x = 0; x < WIDTH; x++) {
-#pragma HLS pipeline
-            ap_uint<24> pix = pin.read().data;
-            // set_sprite_pixel(line_sprites, x, pix);
-            p.data = pix;
-            p.user[0] = (x == 0 && y == 0);
-            p.last    = (x == WIDTH - 1);
-            pout.write(p);
-
-            if (hactive && (x & 0x7) == 4) {
-                pkt.data = (pix.range(23, 20), pix.range(7, 4), pix.range(15, 12));
-                pkt.last = (x == WIDTH - 4);
-                yunet_ins.write(pkt);
-            }
-        }
-    }
-
+void write_params(const ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& yunet_ins) {
     int ptr = 0;
     for (int j = 0; j < PARAM_BLOCK_COUNT; j++) {
         for (int i = 0; i < PARAM_SIZES[j]; i++) {
 #pragma HLS pipeline 
+            axis_data64 pkt;
             pkt.data = params[ptr++];
             pkt.last = (i == PARAM_SIZES[j] - 1);
             yunet_ins.write(pkt);
@@ -254,8 +211,46 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
     static Detect detects[MAX_DETECTIONS];
     static ap_uint<8> detect_count = 0;
 
+    // LineSprite line_sprites[MAX_LINE_SPRITES];
+
+    pixel_t p;
+    p.data = 0;
+    p.keep = 0x7;
+    p.strb = 0x7;
+    p.user = 0;
+    p.last = 0;
+    p.id = 0;
+    p.dest = 0;
+
+    int16_t dy = HEIGHT / 2;
+    for (uint16_t y = 0; y < HEIGHT; y++) {
+        // select_line_sprites(detects, detect_count, y, line_sprites);
+        bool hactive = false;
+        dy -= INPUT_SIZE;
+        if (dy < 0) {
+            dy += HEIGHT;
+            hactive = true;
+        }
+        for (uint16_t x = 0; x < WIDTH; x++) {
+#pragma HLS pipeline
+            ap_uint<24> pix = pin.read().data;
+            // set_sprite_pixel(line_sprites, x, pix);
+            p.data = pix;
+            p.user[0] = (x == 0 && y == 0);
+            p.last    = (x == WIDTH - 1);
+            pout.write(p);
+
+            if (hactive && (x & 0x7) == 4) {
+                axis_data64 pkt;
+                pkt.data = (pix.range(23, 20), pix.range(7, 4), pix.range(15, 12));
+                pkt.last = (x == WIDTH - 4);
+                yunet_ins.write(pkt);
+            }
+        }
+    }
+
 #pragma HLS dataflow
 
-    overlay_and_write_params(pin, pout, detects, detect_count, params, yunet_ins);
+    write_params(params, yunet_ins);
     read_detects(yunet_outs, detects, detect_count);
 }
