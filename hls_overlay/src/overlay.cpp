@@ -116,17 +116,11 @@ constexpr int PARAM_SIZES[] = {
 constexpr int PARAM_BLOCK_COUNT = sizeof(PARAM_SIZES) / sizeof(PARAM_SIZES[0]);
 
 // void write_params(const ap_uint<64> params[PARAM_COUNT]) {
-void write_params(const ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& ins) {
+void write_params(
+    const ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& ins)
+{
     int ptr = 0;
     axis_data64 pkt;
-    
-    for (int y = 0; y < INPUT_SIZE; y++) {
-        for (int x = 0; x < INPUT_SIZE; x++) {
-            pkt.data = 0; //images[ptr++];
-            pkt.last = (x == INPUT_SIZE - 1);
-            ins.write(pkt);
-        }
-    }
 
     for (int j = 0; j < PARAM_BLOCK_COUNT; j++) {
         for (int i = 0; i < PARAM_SIZES[j]; i++) {
@@ -189,7 +183,7 @@ void select_line_sprites(const Detect detects[MAX_DETECTIONS], const ap_uint<8> 
     }
 
     for (int i = count; i < MAX_LINE_SPRITES; i++) {
-#pragma HLS pipeline
+#pragma HLS unroll
         line_sprites[i].enable = false;
     }
 }
@@ -205,7 +199,7 @@ void set_sprite_pixel(const LineSprite line_sprites[MAX_LINE_SPRITES], const uin
     }
 }
 
-void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
+void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
     fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
     const ap_uint<64> params[PARAM_COUNT])
 {
@@ -231,8 +225,19 @@ void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
     p.id = 0;
     p.dest = 0;
 
+    axis_data64 pkt;
+    p.data = 0;
+    p.last = 0;
+
+    uint16_t dy = HEIGHT / 2;
     for (uint16_t y = 0; y < HEIGHT; y++) {
         select_line_sprites(detects, detect_count, y, line_sprites);
+        bool hactive = false;
+        dy -= INPUT_SIZE;
+        if (dy < 0) {
+            dy += HEIGHT;
+            hactive = true;
+        }
         for (uint16_t x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
             ap_uint<24> pix = pin.read().data;
@@ -241,6 +246,12 @@ void pattern_overlay(fifo<pixel_t>& pin,fifo<pixel_t>& pout,
             p.user[0] = (x == 0 && y == 0);
             p.last    = (x == WIDTH - 1);
             pout.write(p);
+
+            if (hactive && (x & 0x7) == 4) {
+                pkt.data = (pix.range(23, 20), pix.range(7, 4), pix.range(15, 12));
+                pkt.last = (x == WIDTH - 4);
+                yunet_ins.write(pkt);
+            }
         }
     }
 
