@@ -1,5 +1,5 @@
 #include "overlay.hpp"
-// #include "image.hpp"
+#include "image.hpp"
 
 constexpr int PARAM_SIZES[] = {
     // YuNetBackbone stage0
@@ -209,7 +209,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 #pragma HLS interface s_axilite port=params bundle=ctrl
 #pragma HLS interface s_axilite port=return bundle=ctrl
 
-// #pragma HLS bind_storage variable=images type=rom_2p impl=lutram
+#pragma HLS bind_storage variable=images type=rom_2p impl=lutram
 
     static Detect detects[MAX_DETECTIONS];
     static ap_uint<8> detect_count = 0;
@@ -235,7 +235,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             if (hactive && (x & 0x7) == 4) {
                 ap_uint<24> rbg = pix.data;
                 axis_data64 pkt;
-                pkt.data = (rbg.range(23, 20), rbg.range(7, 4), rbg.range(15, 12));
+                pkt.data = images[ptr++].to_uint(); //(rbg.range(23, 20), rbg.range(7, 4), rbg.range(15, 12));
                 pkt.last = (x == WIDTH - 4);
                 yunet_ins.write(pkt);
             }
