@@ -38,5 +38,5 @@ struct LineSprite {
 extern "C" {
 void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
     fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
-    const ap_uint<64> params[PARAM_COUNT], const ap_uint<64> image[INPUT_SIZE * INPUT_SIZE]);
+    const ap_uint<64> params[PARAM_COUNT]);
 }

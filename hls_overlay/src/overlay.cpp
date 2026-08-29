@@ -199,16 +199,14 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], ap_uin
 
 void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
     fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
-    const ap_uint<64> params[PARAM_COUNT], const ap_uint<64> image[INPUT_SIZE * INPUT_SIZE])
+    const ap_uint<64> params[PARAM_COUNT])
 {
 #pragma HLS interface axis port=pin
 #pragma HLS interface axis port=pout
 #pragma HLS interface axis port=yunet_ins
 #pragma HLS interface axis port=yunet_outs
 #pragma HLS interface m_axi port=params offset=slave bundle=gmem
-#pragma HLS interface m_axi port=image offset=slave bundle=gmem
 #pragma HLS interface s_axilite port=params bundle=ctrl
-#pragma HLS interface s_axilite port=image bundle=ctrl
 #pragma HLS interface s_axilite port=return bundle=ctrl
 
 // #pragma HLS bind_storage variable=images type=rom_2p impl=lutram
