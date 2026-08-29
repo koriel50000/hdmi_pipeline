@@ -6,6 +6,7 @@
 constexpr int WIDTH = 1280;
 constexpr int HEIGHT = 720;
 
+constexpr int INPUT_SIZE = 160;
 constexpr int PARAM_COUNT = 13440;
 constexpr int MAX_DETECTIONS = 32;
 constexpr int MAX_LINE_SPRITES = 8;
@@ -35,7 +36,7 @@ struct LineSprite {
 };
 
 extern "C" {
-void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout);
-    // fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
-    // const ap_uint<64> params[PARAM_COUNT]);
+void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
+    fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
+    const ap_uint<64> params[PARAM_COUNT]);
 }
