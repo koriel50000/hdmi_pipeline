@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <stdio.h>
 #include "overlay.hpp"
+#include "image.hpp"
 
 int main ()
 {
@@ -9,6 +10,16 @@ int main ()
     fifo<axis_data64> yunet_ins;
     fifo<axis_data8> yunet_outs;
     const ap_uint<64> params[PARAM_COUNT] = {};
+
+    // int ptr = 0;
+    // for (uint16_t y = 0; y < INPUT_SIZE; y++) {
+    //     for (uint16_t x = 0; x < INPUT_SIZE; x++) {
+    //         ap_uint<12> p = images[ptr++];
+    //         ap_uint<9> rgb = (p.range(10, 8), p.range(6, 4), p.range(2, 0));
+    //         printf("0x%03x, ", rgb.to_uint());
+    //     }
+    //     printf("\n");
+    // }
 
 //     for (uint16_t y = 0; y < HEIGHT; y++) {
 //         for (uint16_t x = 0; x < WIDTH; x++) {

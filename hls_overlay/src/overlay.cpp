@@ -213,15 +213,16 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 
     LineSprite line_sprites[MAX_LINE_SPRITES];
 
-    int16_t dy = HEIGHT / 2;
+    int ptr = 0;
+    // int16_t dy = HEIGHT / 2;
     for (uint16_t y = 0; y < HEIGHT; y++) {
         select_line_sprites(detects, detect_count, y, line_sprites);
-        bool hactive = false;
-        dy -= INPUT_SIZE;
-        if (dy < 0) {
-            dy += HEIGHT;
-            hactive = true;
-        }
+        bool hactive = 40 <= y && y < 680 && (y & 0x3) == 2;
+        // dy -= INPUT_SIZE;
+        // if (dy < 0) {
+        //     dy += HEIGHT;
+        //     hactive = true;
+        // }
         for (uint16_t x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
             pixel_t pix = pin.read();
