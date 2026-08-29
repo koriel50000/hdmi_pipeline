@@ -155,7 +155,7 @@ void overlay_and_write_params(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
     const Detect detects[MAX_DETECTIONS], const ap_uint<8> detect_count,
     const ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& yunet_ins)
 {
-    LineSprite line_sprites[MAX_LINE_SPRITES];
+    // LineSprite line_sprites[MAX_LINE_SPRITES];
 
     pixel_t p;
     p.data = 0;
@@ -172,7 +172,7 @@ void overlay_and_write_params(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 
     uint16_t dy = HEIGHT / 2;
     for (uint16_t y = 0; y < HEIGHT; y++) {
-        select_line_sprites(detects, detect_count, y, line_sprites);
+        // select_line_sprites(detects, detect_count, y, line_sprites);
         bool hactive = false;
         dy -= INPUT_SIZE;
         if (dy < 0) {
@@ -182,7 +182,7 @@ void overlay_and_write_params(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
         for (uint16_t x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
             ap_uint<24> pix = pin.read().data;
-            set_sprite_pixel(line_sprites, x, pix);
+            // set_sprite_pixel(line_sprites, x, pix);
             p.data = pix;
             p.user[0] = (x == 0 && y == 0);
             p.last    = (x == WIDTH - 1);
