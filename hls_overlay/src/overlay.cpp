@@ -115,55 +115,6 @@ constexpr int PARAM_SIZES[] = {
 
 constexpr int PARAM_BLOCK_COUNT = sizeof(PARAM_SIZES) / sizeof(PARAM_SIZES[0]);
 
-// void write_params(const ap_uint<64> params[PARAM_COUNT]) {
-void write_params(
-    const ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& ins)
-{
-    int ptr = 0;
-    axis_data64 pkt;
-
-    for (int j = 0; j < PARAM_BLOCK_COUNT; j++) {
-        for (int i = 0; i < PARAM_SIZES[j]; i++) {
-#pragma HLS pipeline 
-            pkt.data = params[ptr++];
-            pkt.last = (i == PARAM_SIZES[j] - 1);
-            ins.write(pkt);
-        }
-    }
-}
-
-// void read_detects(Detect detects[MAX_DETECTIONS], ap_uint<8>& count) {
-void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], ap_uint<8>& count) {
-    count = outs.read().data;
-
-    // detects[0] = Detect{ 48, 36, 84, 84, 49153, { 56, 53, 67, 51, 61, 59, 57, 66, 70, 66 } };
-    // detects[1] = Detect{ 110, 65, 146, 113, 45942, { 126, 83, 138, 83, 134, 89, 129, 98, 138, 98 } };
-    // detects[2] = Detect{ 11, 121, 47, 157, 45942, { 24, 136, 35, 136, 30, 139, 24, 147, 35, 145 } };
-    // detects[3] = Detect{ 13, 33, 35, 63, 42237, { 19, 43, 25, 43, 22, 49, 19, 54, 27, 54 } };
-    // detects[4] = Detect{ 131, 38, 157, 68, 38874, { 144, 49, 150, 49, 150, 53, 145, 59, 154, 59 } };
-    // detects[5] = Detect{ 70, 97, 106, 145, 35739, { 88, 115, 96, 115, 93, 121, 88, 130, 96, 130 } };
-
-    for (int i = 0; i < MAX_DETECTIONS; i++) {
-#pragma HLS pipeline 
-        if (i < count) {
-            // detects[i].x1 = detects[i].x1 * 8;
-            // detects[i].y1 = detects[i].y1 * 9 / 2;
-            // detects[i].x2 = detects[i].x2 * 8;
-            // detects[i].y2 = detects[i].y2 * 9 / 2;
-            detects[i].x1 = outs.read().data * 8;
-            detects[i].y1 = outs.read().data * 9 / 2;
-            detects[i].x2 = outs.read().data * 8;
-            detects[i].y2 = outs.read().data * 9 / 2;
-            ap_int<8> hi = outs.read().data;
-            ap_int<8> lo = outs.read().data;
-            detects[i].score = (hi, lo);
-            for (int k = 0; k < 10; k++) {
-                detects[i].kps[k] = outs.read().data;
-            }
-        }
-    }
-}
-
 void select_line_sprites(const Detect detects[MAX_DETECTIONS], const ap_uint<8> detect_count,
     const uint16_t y, LineSprite line_sprites[MAX_LINE_SPRITES])
 {
@@ -199,21 +150,11 @@ void set_sprite_pixel(const LineSprite line_sprites[MAX_LINE_SPRITES], const uin
     }
 }
 
-void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
-    fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
-    const ap_uint<64> params[PARAM_COUNT])
+// void write_params(const ap_uint<64> params[PARAM_COUNT]) {
+void overlay_and_write_params(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
+    const Detect detects[MAX_DETECTIONS], const ap_uint<8> detect_count,
+    const ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& yunet_ins)
 {
-#pragma HLS interface axis port=pin
-#pragma HLS interface axis port=pout
-#pragma HLS interface axis port=yunet_ins
-#pragma HLS interface axis port=yunet_outs
-#pragma HLS interface m_axi port=params offset=slave bundle=gmem
-#pragma HLS interface s_axilite port=params bundle=ctrl
-#pragma HLS interface s_axilite port=return bundle=ctrl
-
-    static Detect detects[MAX_DETECTIONS];
-    static ap_uint<8> detect_count = 0;
-
     LineSprite line_sprites[MAX_LINE_SPRITES];
 
     pixel_t p;
@@ -255,8 +196,66 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
         }
     }
 
+    int ptr = 0;
+    for (int j = 0; j < PARAM_BLOCK_COUNT; j++) {
+        for (int i = 0; i < PARAM_SIZES[j]; i++) {
+#pragma HLS pipeline 
+            pkt.data = params[ptr++];
+            pkt.last = (i == PARAM_SIZES[j] - 1);
+            yunet_ins.write(pkt);
+        }
+    }
+}
+
+// void read_detects(Detect detects[MAX_DETECTIONS], ap_uint<8>& count) {
+void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], ap_uint<8>& count) {
+    count = outs.read().data;
+
+    // detects[0] = Detect{ 48, 36, 84, 84, 49153, { 56, 53, 67, 51, 61, 59, 57, 66, 70, 66 } };
+    // detects[1] = Detect{ 110, 65, 146, 113, 45942, { 126, 83, 138, 83, 134, 89, 129, 98, 138, 98 } };
+    // detects[2] = Detect{ 11, 121, 47, 157, 45942, { 24, 136, 35, 136, 30, 139, 24, 147, 35, 145 } };
+    // detects[3] = Detect{ 13, 33, 35, 63, 42237, { 19, 43, 25, 43, 22, 49, 19, 54, 27, 54 } };
+    // detects[4] = Detect{ 131, 38, 157, 68, 38874, { 144, 49, 150, 49, 150, 53, 145, 59, 154, 59 } };
+    // detects[5] = Detect{ 70, 97, 106, 145, 35739, { 88, 115, 96, 115, 93, 121, 88, 130, 96, 130 } };
+
+    for (int i = 0; i < MAX_DETECTIONS; i++) {
+#pragma HLS pipeline 
+        if (i < count) {
+            // detects[i].x1 = detects[i].x1 * 8;
+            // detects[i].y1 = detects[i].y1 * 9 / 2;
+            // detects[i].x2 = detects[i].x2 * 8;
+            // detects[i].y2 = detects[i].y2 * 9 / 2;
+            detects[i].x1 = outs.read().data * 8;
+            detects[i].y1 = outs.read().data * 9 / 2;
+            detects[i].x2 = outs.read().data * 8;
+            detects[i].y2 = outs.read().data * 9 / 2;
+            ap_int<8> hi = outs.read().data;
+            ap_int<8> lo = outs.read().data;
+            detects[i].score = (hi, lo);
+            for (int k = 0; k < 10; k++) {
+                detects[i].kps[k] = outs.read().data;
+            }
+        }
+    }
+}
+
+void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
+    fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
+    const ap_uint<64> params[PARAM_COUNT])
+{
+#pragma HLS interface axis port=pin
+#pragma HLS interface axis port=pout
+#pragma HLS interface axis port=yunet_ins
+#pragma HLS interface axis port=yunet_outs
+#pragma HLS interface m_axi port=params offset=slave bundle=gmem
+#pragma HLS interface s_axilite port=params bundle=ctrl
+#pragma HLS interface s_axilite port=return bundle=ctrl
+
+    static Detect detects[MAX_DETECTIONS];
+    static ap_uint<8> detect_count = 0;
+
 #pragma HLS dataflow
 
-    write_params(params, yunet_ins);
+    overlay_and_write_params(pin, pout, detects, detect_count, params, yunet_ins);
     read_detects(yunet_outs, detects, detect_count);
 }
