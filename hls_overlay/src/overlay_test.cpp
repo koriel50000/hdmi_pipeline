@@ -1,7 +1,6 @@
 #include <cstdint>
 #include <stdio.h>
 #include "overlay.hpp"
-#include "image.hpp"
 
 int main ()
 {

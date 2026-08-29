@@ -198,14 +198,16 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], ap_uin
 
 void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
     fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
-    const ap_uint<64> params[PARAM_COUNT])
+    const ap_uint<64> params[PARAM_COUNT], const ap_uint<64> image[INPUT_SIZE * INPUT_SIZE])
 {
 #pragma HLS interface axis port=pin
 #pragma HLS interface axis port=pout
 #pragma HLS interface axis port=yunet_ins
 #pragma HLS interface axis port=yunet_outs
 #pragma HLS interface m_axi port=params offset=slave bundle=gmem
+#pragma HLS interface m_axi port=image offset=slave bundle=gmem
 #pragma HLS interface s_axilite port=params bundle=ctrl
+#pragma HLS interface s_axilite port=image bundle=ctrl
 #pragma HLS interface s_axilite port=return bundle=ctrl
 
     static Detect detects[MAX_DETECTIONS];
@@ -232,7 +234,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             if (hactive && (x & 0x7) == 4) {
                 ap_uint<24> rbg = pix.data;
                 axis_data64 pkt;
-                pkt.data = (rbg.range(23, 20), rbg.range(7, 4), rbg.range(15, 12));
+                pkt.data = image[ptr++].to_uint(); //(rbg.range(23, 20), rbg.range(7, 4), rbg.range(15, 12));
                 pkt.last = (x == WIDTH - 4);
                 yunet_ins.write(pkt);
             }
