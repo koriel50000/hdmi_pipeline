@@ -170,15 +170,15 @@ void overlay_and_write_params(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
     p.data = 0;
     p.last = 0;
 
-    // uint16_t dy = HEIGHT / 2;
+    int16_t dy = HEIGHT / 2;
     for (uint16_t y = 0; y < HEIGHT; y++) {
         // select_line_sprites(detects, detect_count, y, line_sprites);
-        // bool hactive = false;
-        // dy -= INPUT_SIZE;
-        // if (dy < 0) {
-        //     dy += HEIGHT;
-        //     hactive = true;
-        // }
+        bool hactive = false;
+        dy -= INPUT_SIZE;
+        if (dy < 0) {
+            dy += HEIGHT;
+            hactive = true;
+        }
         for (uint16_t x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
             ap_uint<24> pix = pin.read().data;
@@ -188,19 +188,11 @@ void overlay_and_write_params(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             p.last    = (x == WIDTH - 1);
             pout.write(p);
 
-            // if (hactive && (x & 0x7) == 4) {
-            //     pkt.data = (pix.range(23, 20), pix.range(7, 4), pix.range(15, 12));
-            //     pkt.last = (x == WIDTH - 4);
-            //     yunet_ins.write(pkt);
-            // }
-        }
-    }
-
-    for (int y = 0; y < INPUT_SIZE; y++) {
-        for (int x = 0; x < INPUT_SIZE; x++) {
-            pkt.data = 0;
-            pkt.last = (x == INPUT_SIZE - 1);
-            yunet_ins.write(pkt);
+            if (hactive && (x & 0x7) == 4) {
+                pkt.data = (pix.range(23, 20), pix.range(7, 4), pix.range(15, 12));
+                pkt.last = (x == WIDTH - 4);
+                yunet_ins.write(pkt);
+            }
         }
     }
 

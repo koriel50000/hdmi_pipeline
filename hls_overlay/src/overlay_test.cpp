@@ -10,20 +10,22 @@ int main ()
     fifo<axis_data8> yunet_outs;
     const ap_uint<64> params[PARAM_COUNT] = {};
 
-    for (uint16_t y = 0; y < HEIGHT; y++) {
-        for (uint16_t x = 0; x < WIDTH; x++) {
-#pragma HLS pipeline
-            pixel_t p;
-            pin.write(p);
-        }
-    }
+//     for (uint16_t y = 0; y < HEIGHT; y++) {
+//         for (uint16_t x = 0; x < WIDTH; x++) {
+// #pragma HLS pipeline
+//             pixel_t p;
+//             pin.write(p);
+//         }
+//     }
 
-    axis_data8 pkt;
-    pkt.data = 0;
-    pkt.last = 1;
-    yunet_outs.write(pkt);
+    // axis_data8 pkt;
+    // pkt.data = 0;
+    // pkt.last = 1;
+    // yunet_outs.write(pkt);
 
+    printf("pattern_overlay-in\n");
     pattern_overlay(pin, pout, yunet_ins, yunet_outs, params);
+    printf("pattern_overlay-out\n");
 
     return 0;
 }
