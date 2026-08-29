@@ -9,7 +9,6 @@ import time
 import numpy as np
 
 from params import *
-from image import *
 
 base = Overlay("./design_1.bit")
 pattern_overlay = base.pattern_overlay_0
@@ -269,13 +268,7 @@ def main():
     params[:] = np.array(param_list, dtype=np.uint64)
     params.flush()
 
-    image_size = len(image_list)
-    image = allocate(shape=(image_size,), dtype=np.uint64)
-    image[:] = np.array(image_list, dtype=uint64)
-    image.flush()
-
     pattern_overlay.register_map.params_1.params = params.physical_address
-    pattern_overlay.register_map.params_1.image = image.physical_address
 
     fbuf0, fbuf1, fbuf2 = video_initialize(vdma)
 
