@@ -250,7 +250,8 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
                 // ap_uint<24> rbg = pix.data;
                 // pkt.data = (rbg.range(23, 20), rbg.range(7, 4), rbg.range(15, 12));
                 ap_uint<9> rgb = images[ptr++];
-                ap_uint<12> rgb12 = (0, rgb.range(8, 6), 0, rgb.range(5, 3), 0, rgb.range(2, 0));
+                ap_uint<1> zero = 0;
+                ap_uint<12> rgb12 = (zero, rgb.range(8, 6), zero, rgb.range(5, 3), zero, rgb.range(2, 0));
                 pkt.data = rgb12.to_uint64();
                 pkt.last = (x == WIDTH - 4);
                 yunet_ins.write(pkt);
@@ -278,7 +279,8 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 //     }
     for (int i = 0; i < 16; i++) {
         ap_uint<9> rgb = images[i];
-        ap_uint<12> rgb12 = (0, rgb.range(8, 6), 0, rgb.range(5, 3), 0, rgb.range(2, 0));
+        ap_uint<1> zero = 0;
+        ap_uint<12> rgb12 = (zero, rgb.range(8, 6), zero, rgb.range(5, 3), zero, rgb.range(2, 0));
         result[i] = rgb12.to_uint64();
     }
     for (int i = 0; i < 16; i++) {
