@@ -166,13 +166,8 @@ void write_params(const ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& yune
 }
 
 // void read_detects(Detect detects[MAX_DETECTIONS], ap_uint<8>& count) {
-void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], ap_uint<8>& count,
-    ap_uint<64> result[RESULT_COUNT])
-{
-    int ptr = 0;
-
-    count = outs.read().data;
-    result[ptr++] = count;
+void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], ap_uint<8>& detect_count) {
+    detect_count = outs.read().data;
 
     // detects[0] = Detect{ 48, 36, 84, 84, 49153, { 56, 53, 67, 51, 61, 59, 57, 66, 70, 66 } };
     // detects[1] = Detect{ 110, 65, 146, 113, 45942, { 126, 83, 138, 83, 134, 89, 129, 98, 138, 98 } };
@@ -183,15 +178,11 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], ap_uin
 
     for (int i = 0; i < MAX_DETECTIONS; i++) {
 #pragma HLS pipeline 
-        if (i < count) {
+        if (i < detect_count) {
             ap_uint<8> x1 = outs.read().data;
             ap_uint<8> y1 = outs.read().data;
             ap_uint<8> x2 = outs.read().data;
             ap_uint<8> y2 = outs.read().data;
-            result[ptr++] = x1;
-            result[ptr++] = y1;
-            result[ptr++] = x2;
-            result[ptr++] = y2;
             detects[i].x1 = x1 * 8;
             detects[i].y1 = y1 * 9 / 2;
             detects[i].x2 = x2 * 8;
@@ -199,15 +190,22 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], ap_uin
             ap_int<8> hi = outs.read().data;
             ap_int<8> lo = outs.read().data;
             detects[i].score = (hi, lo);
-            result[ptr++] = hi;
-            result[ptr++] = lo;
             for (int k = 0; k < 10; k++) {
                 ap_uint<8> kps = outs.read().data;
                 detects[i].kps[k] = kps;
-                result[ptr++] = kps;
             }
         }
     }
+}
+
+void yunet(fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
+    Detect detects[MAX_DETECTIONS], ap_uint<8>& detect_count,
+    const ap_uint<64> params[PARAM_COUNT])
+{
+#pragma HLS dataflow
+
+    write_params(params, yunet_ins);
+    read_detects(yunet_outs, detects, detect_count);    
 }
 
 void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
@@ -231,7 +229,6 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 
     LineSprite line_sprites[MAX_LINE_SPRITES];
 
-    int ptr = 0;
     int16_t dy = HEIGHT / 2;
     for (uint16_t y = 0; y < HEIGHT; y++) {
         select_line_sprites(detects, detect_count, y, line_sprites);
@@ -257,8 +254,22 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
         }
     }
 
-#pragma HLS dataflow
+    yunet(yunet_ins, yunet_outs, detects, detect_count, params);
 
-    write_params(params, yunet_ins);
-    read_detects(yunet_outs, detects, detect_count, result);
+    int ptr = 0;
+    result[ptr++] = detect_count;
+    for (int i = 0; i < MAX_DETECTIONS; i++) {
+#pragma HLS pipeline
+        if (i < detect_count) {
+            result[ptr++] = detects[i].x1;
+            result[ptr++] = detects[i].y1;
+            result[ptr++] = detects[i].x2;
+            result[ptr++] = detects[i].y2;
+            result[ptr++] = 0;
+            result[ptr++] = 0;
+            for (int k = 0; k < 10; k++) {
+                result[ptr++] = 0;
+            }
+        }
+    }
 }
