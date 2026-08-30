@@ -238,10 +238,10 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
         for (uint16_t x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
             pixel_t pix = pin.read();
+            ap_uint<24> rbg = pix.data;
             set_sprite_pixel(line_sprites, x, pix);
             pout.write(pix);
 
-            ap_uint<24> rbg = pix.data;
             r_sum += rbg.range(23, 16);
             g_sum += rbg.range(7, 0);
             b_sum += rbg.range(15, 8);
