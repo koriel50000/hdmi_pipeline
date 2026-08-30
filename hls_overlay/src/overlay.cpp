@@ -169,10 +169,10 @@ void write_params(const ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& yune
 void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], ap_uint<8>& count,
     ap_uint<64> result[RESULT_COUNT])
 {
-    // int ptr = 0;
+    int ptr = 0;
 
     count = outs.read().data;
-    // result[ptr++] = count;
+    result[ptr++] = count;
 
     // detects[0] = Detect{ 48, 36, 84, 84, 49153, { 56, 53, 67, 51, 61, 59, 57, 66, 70, 66 } };
     // detects[1] = Detect{ 110, 65, 146, 113, 45942, { 126, 83, 138, 83, 134, 89, 129, 98, 138, 98 } };
@@ -188,10 +188,10 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], ap_uin
             ap_uint<8> y1 = outs.read().data;
             ap_uint<8> x2 = outs.read().data;
             ap_uint<8> y2 = outs.read().data;
-            // result[ptr++] = x1;
-            // result[ptr++] = y1;
-            // result[ptr++] = x2;
-            // result[ptr++] = y2;
+            result[ptr++] = x1;
+            result[ptr++] = y1;
+            result[ptr++] = x2;
+            result[ptr++] = y2;
             detects[i].x1 = x1 * 8;
             detects[i].y1 = y1 * 9 / 2;
             detects[i].x2 = x2 * 8;
@@ -199,12 +199,12 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], ap_uin
             ap_int<8> hi = outs.read().data;
             ap_int<8> lo = outs.read().data;
             detects[i].score = (hi, lo);
-            // result[ptr++] = hi;
-            // result[ptr++] = lo;
+            result[ptr++] = hi;
+            result[ptr++] = lo;
             for (int k = 0; k < 10; k++) {
                 ap_uint<8> kps = outs.read().data;
                 detects[i].kps[k] = kps;
-                // result[ptr++] = kps;
+                result[ptr++] = kps;
             }
         }
     }
