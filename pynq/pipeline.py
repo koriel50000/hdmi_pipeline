@@ -288,14 +288,13 @@ def main():
             frame_processed += 1
             elapsed = time.time() - start_time
             fps = frame_processed / elapsed
-            print("{elapsed}")
 
-            result.invalidate()
-            count = int(result[0])
-            x1 = int(result[1])
-            y1 = int(result[2])
+            if frame_processed == 1:
+                result.invalidate()
+                for x in result[:16]:
+                    print(f"{x:016x}")
 
-            sys.stdout.write(f"\rFPS: {fps:.2f} {frame_processed} result: {count} ({x1},{y1})")
+            sys.stdout.write(f"\rFPS: {fps:.2f} {frame_processed}")
             sys.stdout.flush()
             
             if elapsed > 60:

@@ -256,20 +256,23 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 
     yunet(yunet_ins, yunet_outs, detects, detect_count, params);
 
-    int ptr = 0;
-    result[ptr++] = detect_count;
-    for (int i = 0; i < MAX_DETECTIONS; i++) {
-#pragma HLS pipeline
-        if (i < detect_count) {
-            result[ptr++] = detects[i].x1;
-            result[ptr++] = detects[i].y1;
-            result[ptr++] = detects[i].x2;
-            result[ptr++] = detects[i].y2;
-            result[ptr++] = 0;
-            result[ptr++] = 0;
-            for (int k = 0; k < 10; k++) {
-                result[ptr++] = 0;
-            }
-        }
+    // int ptr = 0;
+//     result[ptr++] = detect_count;
+//     for (int i = 0; i < MAX_DETECTIONS; i++) {
+// #pragma HLS pipeline
+//         if (i < detect_count) {
+//             result[ptr++] = detects[i].x1;
+//             result[ptr++] = detects[i].y1;
+//             result[ptr++] = detects[i].x2;
+//             result[ptr++] = detects[i].y2;
+//             result[ptr++] = 0;
+//             result[ptr++] = 0;
+//             for (int k = 0; k < 10; k++) {
+//                 result[ptr++] = 0;
+//             }
+//         }
+//     }
+    for (int i = 0; i < 16; i++) {
+        result[i] = params[i];
     }
 }
