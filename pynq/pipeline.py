@@ -268,11 +268,11 @@ def main():
     params[:] = np.array(param_list, dtype=np.uint64)
     params.flush()
 
-    result = allocate(shape=(1 + 16 * 32,), dtype=np.uint64)
+    # result = allocate(shape=(1 + 16 * 32,), dtype=np.uint64)
 
     print(pattern_overlay.register_map)
     pattern_overlay.register_map.params_1.params = params.physical_address
-    pattern_overlay.register_map.result_1.result = result.physical_address
+    # pattern_overlay.register_map.result_1.result = result.physical_address
 
     fbuf0, fbuf1, fbuf2 = video_initialize(vdma)
 
@@ -289,15 +289,15 @@ def main():
             elapsed = time.time() - start_time
             fps = frame_processed / elapsed
 
-            if frame_processed == 1:
-                result.invalidate()
-                count = result[0]
-                print(f"count: {count}")
-                offset = 1
-                for i in range(count):
-                    coord = result[offset : offset + 16]
-                    print(f"({coord[0]}, {coord[1]}, {coord[2]}, {coord[3]})")
-                    offset += 16                    
+            # if frame_processed == 1:
+            #     result.invalidate()
+            #     count = result[0]
+            #     print(f"count: {count}")
+            #     offset = 1
+            #     for i in range(count):
+            #         coord = result[offset : offset + 16]
+            #         print(f"({coord[0]}, {coord[1]}, {coord[2]}, {coord[3]})")
+            #         offset += 16                    
 
             sys.stdout.write(f"\rFPS: {fps:.2f} {frame_processed}")
             sys.stdout.flush()

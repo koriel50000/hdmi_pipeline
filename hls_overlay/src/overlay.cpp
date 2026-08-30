@@ -1,5 +1,4 @@
 #include "overlay.hpp"
-#include "image.hpp"
 
 constexpr int PARAM_SIZES[] = {
     // YuNetBackbone stage0
@@ -184,106 +183,130 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], ap_uin
             ap_uint<8> x2 = outs.read().data;
             ap_uint<8> y2 = outs.read().data;
             detects[i].x1 = x1 * 8;
-            detects[i].y1 = y1 * 9 / 2;
+            detects[i].y1 = y1 * 8;
             detects[i].x2 = x2 * 8;
-            detects[i].y2 = y2 * 9 / 2;
+            detects[i].y2 = y2 * 8;
             ap_int<8> hi = outs.read().data;
             ap_int<8> lo = outs.read().data;
-            detects[i].score = (hi, lo);
+            // detects[i].score = (hi, lo);
             for (int k = 0; k < 10; k++) {
                 ap_uint<8> kps = outs.read().data;
-                detects[i].kps[k] = kps;
+                // detects[i].kps[k] = kps * 8;
             }
         }
     }
 }
 
-void yunet(fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
-    Detect detects[MAX_DETECTIONS], ap_uint<8>& detect_count,
-    const ap_uint<64> params[PARAM_COUNT])
-{
-#pragma HLS dataflow
+// void yunet(fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
+//     Detect detects[MAX_DETECTIONS], ap_uint<8>& detect_count,
+//     const ap_uint<64> params[PARAM_COUNT])
+// {
+// #pragma HLS dataflow
 
-    write_params(params, yunet_ins);
-    read_detects(yunet_outs, detects, detect_count);    
-}
+//     write_params(params, yunet_ins);
+//     read_detects(yunet_outs, detects, detect_count);    
+// }
 
 void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
     fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
-    const ap_uint<64> params[PARAM_COUNT], ap_uint<64> result[RESULT_COUNT])
+    const ap_uint<64> params[PARAM_COUNT])
 {
 #pragma HLS interface axis port=pin
 #pragma HLS interface axis port=pout
 #pragma HLS interface axis port=yunet_ins
 #pragma HLS interface axis port=yunet_outs
 #pragma HLS interface m_axi port=params offset=slave bundle=gmem
-#pragma HLS interface m_axi port=result offset=slave bundle=gmem
+// #pragma HLS interface m_axi port=result offset=slave bundle=gmem
 #pragma HLS interface s_axilite port=params bundle=ctrl
-#pragma HLS interface s_axilite port=result bundle=ctrl
+// #pragma HLS interface s_axilite port=result bundle=ctrl
 #pragma HLS interface s_axilite port=return bundle=ctrl
-
-#pragma HLS bind_storage variable=images type=rom_2p impl=lutram
 
     static Detect detects[MAX_DETECTIONS];
     static ap_uint<8> detect_count = 0;
 
     LineSprite line_sprites[MAX_LINE_SPRITES];
+    LineBuffer line_buffer[INPUT_SIZE];
 
-    int ptr = 0;
-    int16_t dy = HEIGHT / 2;
+    axis_data64 pkt;
+
+    bool line_boundary = true;
     for (uint16_t y = 0; y < HEIGHT; y++) {
         select_line_sprites(detects, detect_count, y, line_sprites);
-        bool hactive = false;
-        dy -= INPUT_SIZE;
-        if (dy < 0) {
-            dy += HEIGHT;
-            hactive = true;
-        }
+        uint16_t r_sum = 0;
+        uint16_t g_sum = 0;
+        uint16_t b_sum = 0;
         for (uint16_t x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
             pixel_t pix = pin.read();
             set_sprite_pixel(line_sprites, x, pix);
             pout.write(pix);
 
-            if (hactive && (x & 0x7) == 4) {
-                axis_data64 pkt;
-                // ap_uint<24> rbg = pix.data;
-                // pkt.data = (rbg.range(23, 20), rbg.range(7, 4), rbg.range(15, 12));
-                ap_uint<9> rgb = images[ptr++];
-                ap_uint<1> zero = 0;
-                ap_uint<12> rgb12 = (zero, rgb.range(8, 6), zero, rgb.range(5, 3), zero, rgb.range(2, 0));
-                pkt.data = rgb12.to_uint64();
-                pkt.last = (x == WIDTH - 4);
-                yunet_ins.write(pkt);
+            ap_uint<24> rbg = pix.data;
+            r_sum += rbg.range(23, 16);
+            g_sum += rbg.range(7, 0);
+            b_sum += rbg.range(15, 8);
+            if ((x & 0x7) == 7) {
+                ap_uint<8> r = r_sum >> 3;
+                ap_uint<8> g = g_sum >> 3;
+                ap_uint<8> b = b_sum >> 3;
+                uint8_t cx = x >> 3;
+                if (line_boundary) {
+                    line_buffer[cx].r = r;
+                    line_buffer[cx].g = g;
+                    line_buffer[cx].b = b;
+                } else {
+                    line_buffer[cx].r = (line_buffer[cx].r + r) / 2;
+                    line_buffer[cx].g = (line_buffer[cx].g + g) / 2;
+                    line_buffer[cx].b = (line_buffer[cx].b + b) / 2;
+                }
+                r_sum = 0;
+                g_sum = 0;
+                b_sum = 0;
             }
         }
-    }
-
-    yunet(yunet_ins, yunet_outs, detects, detect_count, params);
-
-    ptr = 0;
-    result[ptr++] = detect_count;
-    for (int i = 0; i < MAX_DETECTIONS; i++) {
+        line_boundary = ((y & 0x07) == 7);
+        if (line_boundary) {
+            for (uint8_t cx = 0; cx < INPUT_SIZE; cx++) {
 #pragma HLS pipeline
-        if (i < detect_count) {
-            result[ptr++] = detects[i].x1;
-            result[ptr++] = detects[i].y1;
-            result[ptr++] = detects[i].x2;
-            result[ptr++] = detects[i].y2;
-            result[ptr++] = 0;
-            result[ptr++] = 0;
-            for (int k = 0; k < 10; k++) {
-                result[ptr++] = 0;
+                LineBuffer& buf = line_buffer[cx];
+                ap_uint<1> b0 = 0;
+                ap_uint<12> rgb = (b0, buf.r.range(7, 5), b0, buf.g.range(7, 5), b0, buf.b.range(7, 5));
+                pkt.data = rgb.to_uint64();
+                pkt.last = (cx == INPUT_SIZE - 1);
+                yunet_ins.write(pkt);                
             }
         }
     }
-    // for (int i = 0; i < 16; i++) {
-    //     ap_uint<9> rgb = images[i];
-    //     ap_uint<1> zero = 0;
-    //     ap_uint<12> rgb12 = (zero, rgb.range(8, 6), zero, rgb.range(5, 3), zero, rgb.range(2, 0));
-    //     result[i] = rgb12.to_uint64();
-    // }
-    // for (int i = 0; i < 16; i++) {
-    //     result[i + 16] = params[i];
-    // }
+
+    for (uint8_t cy = 0; cy < 70; cy++) {
+        for (uint8_t cx = 0; cx < INPUT_SIZE; cx++) {
+#pragma HLS pipeline
+            pkt.data = 0;
+            pkt.last = (cx == INPUT_SIZE - 1);
+            yunet_ins.write(pkt);            
+        }
+    }
+
+    // yunet(yunet_ins, yunet_outs, detects, detect_count, params);
+#pragma HLS dataflow
+
+    write_params(params, yunet_ins);
+    read_detects(yunet_outs, detects, detect_count);    
+
+//     int ptr = 0;
+//     result[ptr++] = detect_count;
+//     for (int i = 0; i < MAX_DETECTIONS; i++) {
+// #pragma HLS pipeline
+//         if (i < detect_count) {
+//             result[ptr++] = detects[i].x1;
+//             result[ptr++] = detects[i].y1;
+//             result[ptr++] = detects[i].x2;
+//             result[ptr++] = detects[i].y2;
+//             result[ptr++] = 0;
+//             result[ptr++] = 0;
+//             for (int k = 0; k < 10; k++) {
+//                 result[ptr++] = 0;
+//             }
+//         }
+//     }
 }
