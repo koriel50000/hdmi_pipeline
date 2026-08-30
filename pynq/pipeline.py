@@ -292,7 +292,11 @@ def main():
             if frame_processed == 1:
                 result.invalidate()
                 for x in result[:16]:
-                    print(f"{x:016x}")
+                    print(f"{x:04x}", end=' ')
+                print()
+                for x in result[16:32]:
+                    print(f"{x:04x}", end=' ')
+                print()
 
             sys.stdout.write(f"\rFPS: {fps:.2f} {frame_processed}")
             sys.stdout.flush()

@@ -1,5 +1,5 @@
 #include "overlay.hpp"
-// #include "image.hpp"
+#include "image.hpp"
 
 constexpr int PARAM_SIZES[] = {
     // YuNetBackbone stage0
@@ -229,6 +229,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 
     LineSprite line_sprites[MAX_LINE_SPRITES];
 
+    int ptr = 0;
     int16_t dy = HEIGHT / 2;
     for (uint16_t y = 0; y < HEIGHT; y++) {
         select_line_sprites(detects, detect_count, y, line_sprites);
@@ -245,9 +246,12 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             pout.write(pix);
 
             if (hactive && (x & 0x7) == 4) {
-                ap_uint<24> rbg = pix.data;
                 axis_data64 pkt;
-                pkt.data = (rbg.range(23, 20), rbg.range(7, 4), rbg.range(15, 12));
+                // ap_uint<24> rbg = pix.data;
+                // pkt.data = (rbg.range(23, 20), rbg.range(7, 4), rbg.range(15, 12));
+                ap_uint<9> rgb = images[ptr++];
+                ap_uint<12> rgb12 = (0, rgb.range(8, 6), 0, rgb.range(5, 3), 0, rgb.range(2, 0));
+                pkt.data = rgb12.to_uint64();
                 pkt.last = (x == WIDTH - 4);
                 yunet_ins.write(pkt);
             }
@@ -273,6 +277,11 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 //         }
 //     }
     for (int i = 0; i < 16; i++) {
-        result[i] = params[i];
+        ap_uint<9> rgb = images[i];
+        ap_uint<12> rgb12 = (0, rgb.range(8, 6), 0, rgb.range(5, 3), 0, rgb.range(2, 0));
+        result[i] = rgb12.to_uint64();
+    }
+    for (int i = 0; i < 16; i++) {
+        result[i + 16] = params[i];
     }
 }
