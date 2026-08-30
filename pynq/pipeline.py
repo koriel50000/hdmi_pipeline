@@ -272,7 +272,7 @@ def main():
 
     print(pattern_overlay.register_map)
     pattern_overlay.register_map.params_1.params = params.physical_address
-    pattern_overlay.register_map.params_1.result = result.physical_address
+    pattern_overlay.register_map.result_1.result = result.physical_address
 
     fbuf0, fbuf1, fbuf2 = video_initialize(vdma)
 
@@ -289,10 +289,10 @@ def main():
             elapsed = time.time() - start_time
             fps = frame_processed / elapsed
 
-            result.invalidate()
-            count = result[0]
-            x1 = result[1]
-            y1 = result[2]
+            # result.invalidate()
+            count = 0 #result[0]
+            x1 = 0 #result[1]
+            y1 = 0 #result[2]
 
             sys.stdout.write(f"\rFPS: {fps:.2f} {frame_processed} result: {count} ({x1},{y1})")
             sys.stdout.flush()
