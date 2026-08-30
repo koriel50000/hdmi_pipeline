@@ -291,12 +291,13 @@ def main():
 
             if frame_processed == 1:
                 result.invalidate()
-                for x in result[:16]:
-                    print(f"{x:04x}", end=' ')
-                print()
-                for x in result[16:32]:
-                    print(f"{x:04x}", end=' ')
-                print()
+                count = result[0]
+                print(f"count: {count}")
+                offset = 1
+                for i in range(count):
+                    coord = result[offset : offset + 16]
+                    print(f"({coord[0]}, {coord[1]}, {coord[2]}, {coord[3]})")
+                    offset += 16                    
 
             sys.stdout.write(f"\rFPS: {fps:.2f} {frame_processed}")
             sys.stdout.flush()

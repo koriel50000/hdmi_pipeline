@@ -222,7 +222,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 #pragma HLS interface s_axilite port=result bundle=ctrl
 #pragma HLS interface s_axilite port=return bundle=ctrl
 
-// #pragma HLS bind_storage variable=images type=rom_2p impl=lutram
+#pragma HLS bind_storage variable=images type=rom_2p impl=lutram
 
     static Detect detects[MAX_DETECTIONS];
     static ap_uint<8> detect_count = 0;
@@ -261,29 +261,29 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 
     yunet(yunet_ins, yunet_outs, detects, detect_count, params);
 
-    // int ptr = 0;
-//     result[ptr++] = detect_count;
-//     for (int i = 0; i < MAX_DETECTIONS; i++) {
-// #pragma HLS pipeline
-//         if (i < detect_count) {
-//             result[ptr++] = detects[i].x1;
-//             result[ptr++] = detects[i].y1;
-//             result[ptr++] = detects[i].x2;
-//             result[ptr++] = detects[i].y2;
-//             result[ptr++] = 0;
-//             result[ptr++] = 0;
-//             for (int k = 0; k < 10; k++) {
-//                 result[ptr++] = 0;
-//             }
-//         }
-//     }
-    for (int i = 0; i < 16; i++) {
-        ap_uint<9> rgb = images[i];
-        ap_uint<1> zero = 0;
-        ap_uint<12> rgb12 = (zero, rgb.range(8, 6), zero, rgb.range(5, 3), zero, rgb.range(2, 0));
-        result[i] = rgb12.to_uint64();
+    ptr = 0;
+    result[ptr++] = detect_count;
+    for (int i = 0; i < MAX_DETECTIONS; i++) {
+#pragma HLS pipeline
+        if (i < detect_count) {
+            result[ptr++] = detects[i].x1;
+            result[ptr++] = detects[i].y1;
+            result[ptr++] = detects[i].x2;
+            result[ptr++] = detects[i].y2;
+            result[ptr++] = 0;
+            result[ptr++] = 0;
+            for (int k = 0; k < 10; k++) {
+                result[ptr++] = 0;
+            }
+        }
     }
-    for (int i = 0; i < 16; i++) {
-        result[i + 16] = params[i];
-    }
+    // for (int i = 0; i < 16; i++) {
+    //     ap_uint<9> rgb = images[i];
+    //     ap_uint<1> zero = 0;
+    //     ap_uint<12> rgb12 = (zero, rgb.range(8, 6), zero, rgb.range(5, 3), zero, rgb.range(2, 0));
+    //     result[i] = rgb12.to_uint64();
+    // }
+    // for (int i = 0; i < 16; i++) {
+    //     result[i + 16] = params[i];
+    // }
 }
