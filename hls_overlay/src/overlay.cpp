@@ -152,10 +152,13 @@ void set_sprite_pixel(const LineSprite line_sprites[MAX_LINE_SPRITES], const uin
 }
 
 void update_line_buffer(LineBuffer line_buffer[INPUT_SIZE],
-    const uint16_t x, const ap_uint<24>& rbg, const bool line_boundary,
-    uint16_t& r_sum, uint16_t& g_sum, uint16_t& b_sum)
+    const uint16_t x, const bool line_boundary, const ap_uint<24>& rbg)
 {
 #pragma HLS inline
+
+    static uint16_t r_sum = 0;
+    static uint16_t g_sum = 0;
+    static uint16_t b_sum = 0;
 
     r_sum += rbg.range(23, 16);
     g_sum += rbg.range(7, 0);
@@ -192,9 +195,9 @@ void write_input_line(LineBuffer line_buffer[INPUT_SIZE], fifo<axis_data64>& yun
         pkt.data = rgb.to_uint64();
         pkt.last = (cx == INPUT_SIZE - 1);
         yunet_ins.write(pkt);                
-    }
-    
+    }    
 }
+
 // void write_params(const ap_uint<64> params[PARAM_COUNT]) {
 void write_params(const ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& yunet_ins) {
     int ptr = 0;
@@ -228,9 +231,9 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], ap_uin
             ap_uint<8> x2 = outs.read().data;
             ap_uint<8> y2 = outs.read().data;
             detects[i].x1 = x1 * 8;
-            detects[i].y1 = y1 * 9 / 2;
+            detects[i].y1 = y1 * 8;
             detects[i].x2 = x2 * 8;
-            detects[i].y2 = y2 * 9 / 2;
+            detects[i].y2 = y2 * 8;
             ap_int<8> hi = outs.read().data;
             ap_int<8> lo = outs.read().data;
             // detects[i].score = (hi, lo);
@@ -261,23 +264,17 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
     LineBuffer line_buffer[INPUT_SIZE];
 
     bool line_boundary = true;
-    int16_t dy = HEIGHT;
     for (uint16_t y = 0; y < HEIGHT; y++) {
         select_line_sprites(detects, detect_count, y, line_sprites);
-        uint16_t r_sum = 0;
-        uint16_t g_sum = 0;
-        uint16_t b_sum = 0;
         for (uint16_t x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
             pixel_t pix = pin.read();
-            update_line_buffer(line_buffer, x, pix.data, line_boundary, r_sum, g_sum, b_sum);
+            update_line_buffer(line_buffer, x, line_boundary, pix.data);
             set_sprite_pixel(line_sprites, x, pix);
             pout.write(pix);
         }
-        dy -= INPUT_SIZE;
-        line_boundary = (dy <= 0);
+        line_boundary = ((y & 0x07) == 7);
         if (line_boundary) {
-            dy += HEIGHT;
             write_input_line(line_buffer, yunet_ins);
         }
     }
