@@ -198,6 +198,20 @@ void write_input_line(LineBuffer line_buffer[INPUT_SIZE], fifo<axis_data64>& yun
     }    
 }
 
+void write_input_padding(fifo<axis_data64>& yunet_ins) {
+#pragma HLS inline
+
+    axis_data64 pkt;
+    for (uint8_t cy = 0; cy < 70; cy++) {
+        for (uint8_t cx = 0; cx < INPUT_SIZE; cx++) {
+#pragma HLS pipeline
+            pkt.data = 0;
+            pkt.last = (cx == INPUT_SIZE - 1);
+            yunet_ins.write(pkt);            
+        }
+    }    
+}
+
 // void write_params(const ap_uint<64> params[PARAM_COUNT]) {
 void write_params(const ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& yunet_ins) {
     int ptr = 0;
@@ -278,6 +292,8 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             write_input_line(line_buffer, yunet_ins);
         }
     }
+
+    write_input_padding(yunet_ins);
 
 #pragma HLS dataflow
 
