@@ -283,9 +283,10 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
         for (uint16_t x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
             pixel_t pix = pin.read();
-            update_line_buffer(line_buffer, x, line_boundary, pix.data);
+            ap_uint<24> rbg = pix.data;
             set_sprite_pixel(line_sprites, x, pix);
             pout.write(pix);
+            update_line_buffer(line_buffer, x, line_boundary, rbg);
         }
         line_boundary = ((y & 0x07) == 7);
         if (line_boundary) {
