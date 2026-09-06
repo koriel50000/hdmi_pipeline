@@ -10,7 +10,7 @@ constexpr int INPUT_SIZE = 160;
 constexpr int PARAM_COUNT = 13440;
 constexpr int MAX_DETECTIONS = 32;
 constexpr int MAX_LINE_SPRITES = 8;
-constexpr int SPRITE_SIZE = 500;
+constexpr int SPRITE_SIZE = 256;
 
 // constexpr int RESULT_COUNT = 1 + 16 * MAX_DETECTIONS;
 
