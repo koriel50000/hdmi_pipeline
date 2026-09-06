@@ -131,7 +131,8 @@ void select_line_sprites(const Detect detects[MAX_DETECTIONS], const ap_uint<8> 
                 line_sprites[count].x1 = cx - size / 2;
                 line_sprites[count].x2 = cx + size / 2;
                 line_sprites[count].size = size;
-                line_sprites[count].base = ((y - detects[i].y1) * SPRITE_SIZE / size) * SPRITE_SIZE;
+                // line_sprites[count].base = ((y - detects[i].y1) * SPRITE_SIZE / size) * SPRITE_SIZE;
+                line_sprites[count].base = (y - detects[i].y1) * SPRITE_SIZE;
                 line_sprites[count].enable = true;
                 count++;
             }
@@ -153,8 +154,9 @@ void set_sprite_pixel(const LineSprite line_sprites[MAX_LINE_SPRITES], const uin
 #pragma HLS unroll
         if (line_sprites[i].enable && line_sprites[i].x1 <= x && x <= line_sprites[i].x2) {
             // int offset = ((x - line_sprites[i].x1) * SPRITE_SIZE) / line_sprites[i].size;
-            ap_uint<32> rgba = sprite_data[line_sprites[i].base + 200];
-            pix.data = rgba.range(31, 8);
+            uint16_t offset = x - line_sprites[i].x1;
+            ap_uint<32> rgba = sprite_data[line_sprites[i].base + offset];
+            pix.data = rgba.range(23, 0);
         }
     }
 }
