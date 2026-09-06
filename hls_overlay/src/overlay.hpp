@@ -10,6 +10,7 @@ constexpr int INPUT_SIZE = 160;
 constexpr int PARAM_COUNT = 13440;
 constexpr int MAX_DETECTIONS = 32;
 constexpr int MAX_LINE_SPRITES = 8;
+constexpr int SPRITE_SIZE = 500;
 
 // constexpr int RESULT_COUNT = 1 + 16 * MAX_DETECTIONS;
 
@@ -34,6 +35,8 @@ struct Detect {
 struct LineSprite {
     uint16_t x1;
     uint16_t x2;
+    uint16_t size;
+    uint16_t base;
     bool enable;
 };
 
@@ -46,5 +49,6 @@ struct LineBuffer {
 extern "C" {
 void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
     fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
-    const ap_uint<64> params[PARAM_COUNT]);
+    const ap_uint<64> params[PARAM_COUNT],
+    const ap_uint<32> sprite_data[SPRITE_SIZE * SPRITE_SIZE]);
 }

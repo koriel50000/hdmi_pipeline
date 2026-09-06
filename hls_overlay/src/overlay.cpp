@@ -126,8 +126,12 @@ void select_line_sprites(const Detect detects[MAX_DETECTIONS], const ap_uint<8> 
 #pragma HLS pipeline
         if (i < detect_count && count < MAX_LINE_SPRITES) {
             if (detects[i].y1 <= y && y <= detects[i].y2) {
-                line_sprites[count].x1 = detects[i].x1;
-                line_sprites[count].x2 = detects[i].x2;
+                const int size = detects[i].y2 - detects[i].y1;
+                const int cx = (detects[i].x1 + detects[i].x2) / 2;
+                line_sprites[count].x1 = cx - size / 2;
+                line_sprites[count].x2 = cx + size / 2;
+                line_sprites[count].size = size;
+                line_sprites[count].base = ((y - detects[i].y1) * SPRITE_SIZE / size) * SPRITE_SIZE;
                 line_sprites[count].enable = true;
                 count++;
             }
@@ -140,13 +144,16 @@ void select_line_sprites(const Detect detects[MAX_DETECTIONS], const ap_uint<8> 
     }
 }
 
-void set_sprite_pixel(const LineSprite line_sprites[MAX_LINE_SPRITES], const uint16_t x, pixel_t& pix) {
+void set_sprite_pixel(const LineSprite line_sprites[MAX_LINE_SPRITES], const uint16_t x,
+    const ap_uint<32> sprite_data[SPRITE_SIZE * SPRITE_SIZE], pixel_t& pix)
+{
 #pragma HLS inline
 
     for (int i = 0; i < MAX_LINE_SPRITES; i++) {
 #pragma HLS unroll
         if (line_sprites[i].enable && line_sprites[i].x1 <= x && x <= line_sprites[i].x2) {
-            pix.data = 0x0000ff;
+            int offset = ((x - line_sprites[i].x1) * SPRITE_SIZE) / line_sprites[i].size;
+            pix.data = sprite_data[line_sprites[i].base + offset];
         }
     }
 }
@@ -261,14 +268,17 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], ap_uin
 
 void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
     fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
-    const ap_uint<64> params[PARAM_COUNT])
+    const ap_uint<64> params[PARAM_COUNT],
+    const ap_uint<32> sprite_data[SPRITE_SIZE * SPRITE_SIZE])
 {
 #pragma HLS interface axis port=pin
 #pragma HLS interface axis port=pout
 #pragma HLS interface axis port=yunet_ins
 #pragma HLS interface axis port=yunet_outs
 #pragma HLS interface m_axi port=params offset=slave bundle=gmem
+#pragma HLS interface m_axi port=sprite_data offset=slave bundle=gmem
 #pragma HLS interface s_axilite port=params bundle=ctrl
+#pragma HLS interface s_axilite port=sprite_data bundle=ctrl
 #pragma HLS interface s_axilite port=return bundle=ctrl
 
     static Detect detects[MAX_DETECTIONS];
@@ -284,7 +294,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 #pragma HLS pipeline
             pixel_t pix = pin.read();
             ap_uint<24> rbg = pix.data;
-            set_sprite_pixel(line_sprites, x, pix);
+            set_sprite_pixel(line_sprites, x, sprite_data, pix);
             pout.write(pix);
             update_line_buffer(line_buffer, x, line_boundary, rbg);
         }
