@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<EDKSYSTEM EDWVERSION="1.2" TIMESTAMP="Mon Sep  7 19:32:34 2026" VIVADOVERSION="2025.2.1">
+<EDKSYSTEM EDWVERSION="1.2" TIMESTAMP="Mon Sep  7 20:26:56 2026" VIVADOVERSION="2025.2.1">
 
   <SYSTEMINFO ARCH="zynq" BOARD="www.digilentinc.com:pynq-z1:part0:1.0" DEVICE="7z020" NAME="design_1" PACKAGE="clg400" SPEEDGRADE="-1"/>
 
@@ -9182,8 +9182,8 @@
             <CONNECTION INSTANCE="v_axi4s_vid_out_0" PORT="aclk"/>
             <CONNECTION INSTANCE="clk_wiz_0" PORT="clk_in1"/>
             <CONNECTION INSTANCE="axi_mem_intercon" PORT="S02_ACLK"/>
-            <CONNECTION INSTANCE="yunet_0" PORT="ap_clk"/>
             <CONNECTION INSTANCE="pattern_overlay_0" PORT="ap_clk"/>
+            <CONNECTION INSTANCE="yunet_0" PORT="ap_clk"/>
           </CONNECTIONS>
         </PORT>
         <PORT DIR="O" NAME="FCLK_RESET0_N" POLARITY="ACTIVE_LOW" SIGIS="rst" SIGNAME="processing_system7_0_FCLK_RESET0_N">
@@ -9968,8 +9968,8 @@
             <CONNECTION INSTANCE="v_vid_in_axi4s_0" PORT="aresetn"/>
             <CONNECTION INSTANCE="v_axi4s_vid_out_0" PORT="aresetn"/>
             <CONNECTION INSTANCE="axi_mem_intercon" PORT="S02_ARESETN"/>
-            <CONNECTION INSTANCE="yunet_0" PORT="ap_rst_n"/>
             <CONNECTION INSTANCE="pattern_overlay_0" PORT="ap_rst_n"/>
+            <CONNECTION INSTANCE="yunet_0" PORT="ap_rst_n"/>
           </CONNECTIONS>
         </PORT>
         <PORT DIR="O" LEFT="0" NAME="peripheral_reset" POLARITY="ACTIVE_HIGH" RIGHT="0" SIGIS="rst" SIGNAME="rst_ps7_0_100M_peripheral_reset">
@@ -10702,14 +10702,14 @@
       </PORTS>
       <BUSINTERFACES/>
     </MODULE>
-    <MODULE COREREVISION="2114774218" FULLNAME="/yunet_0" HWVERSION="1.0" INSTANCE="yunet_0" IPTYPE="PERIPHERAL" IS_ENABLE="1" MODCLASS="PERIPHERAL" MODTYPE="yunet" VLNV="arp-corp:yunet:yunet:1.0">
+    <MODULE COREREVISION="2114775983" FULLNAME="/yunet_0" HWVERSION="1.0" INSTANCE="yunet_0" IPTYPE="PERIPHERAL" IS_ENABLE="1" MODCLASS="PERIPHERAL" MODTYPE="yunet" VLNV="arp-corp:yunet:yunet:1.0">
       <DOCUMENTS/>
       <PARAMETERS>
-        <PARAMETER NAME="Component_Name" VALUE="design_1_yunet_0_15"/>
-        <PARAMETER NAME="II" VALUE="178017"/>
+        <PARAMETER NAME="Component_Name" VALUE="design_1_yunet_0_16"/>
+        <PARAMETER NAME="II" VALUE="undef"/>
         <PARAMETER NAME="clk_period" VALUE="10"/>
         <PARAMETER NAME="combinational" VALUE="0"/>
-        <PARAMETER NAME="latency" VALUE="178016"/>
+        <PARAMETER NAME="latency" VALUE="undef"/>
         <PARAMETER NAME="machine" VALUE="64"/>
         <PARAMETER NAME="EDK_IPTYPE" VALUE="PERIPHERAL"/>
       </PARAMETERS>
