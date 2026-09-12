@@ -171,7 +171,7 @@ void set_sprite_pixel(LineSprite line_sprites[MAX_LINE_SPRITES], const uint16_t 
             sprite.src_x += sprite.src_dx;
             const uint16_t base = sprite.src_x >> (16 + 5);
             const uint8_t offset = (sprite.src_x & 0x1f0000) >> 15;
-            ap_uint<64> data = sprite.linebuf[base];
+            ap_uint<64> data = -1; //sprite.linebuf[base];
             ap_uint<2> color = (data >> offset) & 0x3;
             if (color == 1) {
                 pix.data = 0xff0000;
