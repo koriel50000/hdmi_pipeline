@@ -117,6 +117,7 @@ constexpr int PARAM_SIZES[] = {
 constexpr int PARAM_BLOCK_COUNT = sizeof(PARAM_SIZES) / sizeof(PARAM_SIZES[0]);
 
 void select_line_sprites(const Detect detects[MAX_DETECTIONS], const ap_uint<8> detect_count,
+    const ap_uint<64> sprite_data[SPRITE_LINEBUF_SIZE * SPRITE_SIZE],
     const uint16_t y, LineSprite line_sprites[MAX_LINE_SPRITES])
 {
 #pragma HLS inline
@@ -125,15 +126,22 @@ void select_line_sprites(const Detect detects[MAX_DETECTIONS], const ap_uint<8> 
     for (int i = 0; i < MAX_DETECTIONS; i++) {
 #pragma HLS pipeline
         if (i < detect_count && count < MAX_LINE_SPRITES) {
-            if (detects[i].y1 <= y && y <= detects[i].y2) {
-                const int size = detects[i].y2 - detects[i].y1;
-                const int cx = (detects[i].x1 + detects[i].x2) / 2;
-                line_sprites[count].x1 = cx - size / 2;
-                line_sprites[count].x2 = cx + size / 2;
-                // line_sprites[count].size = size;
-                // line_sprites[count].base = ((y - detects[i].y1) * SPRITE_SIZE / size) * SPRITE_SIZE;
-                // line_sprites[count].base = (y - detects[i].y1) * SPRITE_SIZE;
-                line_sprites[count].enable = true;
+            const Detect& detect = detects[i];
+            if (detect.y1 <= y && y <= detect.y2) {
+                LineSprite& sprite = line_sprites[count];
+                uint16_t base = y - detect.y1;
+                uint16_t size = detect.y2 - detect.y1;
+                uint16_t cx = (detect.x1 + detect.x2) / 2;
+                sprite.x1 = cx - size / 2;
+                sprite.x2 = cx + size / 2;
+                for (int j = 0; j < SPRITE_LINEBUF_SIZE; j++) {
+#pragma HLS unroll
+                    sprite.linebuf[j] = sprite_data[base * SPRITE_LINEBUF_SIZE + j];
+                }
+                const uint32_t dx = (SPRITE_SIZE << 16) / size;
+                sprite.src_x = -dx;
+                sprite.src_dx = dx;
+                sprite.enable = true;
                 count++;
             }
         }
@@ -145,19 +153,23 @@ void select_line_sprites(const Detect detects[MAX_DETECTIONS], const ap_uint<8> 
     }
 }
 
-void set_sprite_pixel(const LineSprite line_sprites[MAX_LINE_SPRITES], const uint16_t x,
-    const ap_uint<32> sprite_data[SPRITE_SIZE * SPRITE_SIZE], pixel_t& pix)
-{
+void set_sprite_pixel(LineSprite line_sprites[MAX_LINE_SPRITES], const uint16_t x, pixel_t& pix) {
 #pragma HLS inline
+    const ap_uint<24> palette[4] = { 0x000000, 0x0000ff, 0x00ff00, 0xff0000 };
 
     for (int i = 0; i < MAX_LINE_SPRITES; i++) {
 #pragma HLS unroll
-        if (line_sprites[i].enable && line_sprites[i].x1 <= x && x <= line_sprites[i].x2) {
-            // int offset = ((x - line_sprites[i].x1) * SPRITE_SIZE) / line_sprites[i].size;
-            // uint16_t offset = x - line_sprites[i].x1;
-            // ap_uint<32> rgba = sprite_data[line_sprites[i].base + offset];
-            // pix.data = rgba.range(23, 0);
-            pix.data = 0x0000ff;
+        LineSprite& sprite = line_sprites[i];
+        if (sprite.enable && sprite.x1 <= x && x <= sprite.x2) {
+            sprite.src_x += sprite.src_dx;
+            const uint16_t sx = sprite.src_x >> 16;
+            const uint16_t base = sx >> 5;
+            const uint8_t offset = (sx & 0x1f) << 1;
+            ap_uint<64> data = sprite.linebuf[base];
+            ap_uint<2> color = data(offset + 1, offset);
+            if (color > 0) {
+                pix.data = palette[color];
+            }
         }
     }
 }
@@ -273,7 +285,7 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], ap_uin
 void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
     fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
     const ap_uint<64> params[PARAM_COUNT],
-    const ap_uint<32> sprite_data[SPRITE_SIZE * SPRITE_SIZE])
+    const ap_uint<64> sprite_data[SPRITE_LINEBUF_SIZE * SPRITE_SIZE])
 {
 #pragma HLS interface axis port=pin
 #pragma HLS interface axis port=pout
@@ -293,12 +305,12 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 
     bool line_boundary = true;
     for (uint16_t y = 0; y < HEIGHT; y++) {
-        select_line_sprites(detects, detect_count, y, line_sprites);
+        select_line_sprites(detects, detect_count, sprite_data, y, line_sprites);
         for (uint16_t x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
             pixel_t pix = pin.read();
             ap_uint<24> rbg = pix.data;
-            set_sprite_pixel(line_sprites, x, sprite_data, pix);
+            set_sprite_pixel(line_sprites, x, pix);
             pout.write(pix);
             update_line_buffer(line_buffer, x, line_boundary, rbg);
         }

@@ -11,6 +11,8 @@ constexpr int PARAM_COUNT = 13440;
 constexpr int MAX_DETECTIONS = 32;
 constexpr int MAX_LINE_SPRITES = 8;
 constexpr int SPRITE_SIZE = 256;
+constexpr int SPRITE_LINEBUF_SIZE = 8;
+constexpr int SPRITE_FRAME_COUNT = 64;
 
 // constexpr int RESULT_COUNT = 1 + 16 * MAX_DETECTIONS;
 
@@ -35,8 +37,9 @@ struct Detect {
 struct LineSprite {
     uint16_t x1;
     uint16_t x2;
-    uint16_t size;
-    uint16_t base;
+    ap_uint<64> linebuf[SPRITE_LINEBUF_SIZE];
+    int32_t src_x;
+    uint32_t src_dx;
     bool enable;
 };
 
