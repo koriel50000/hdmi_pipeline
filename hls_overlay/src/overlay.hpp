@@ -53,5 +53,5 @@ extern "C" {
 void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
     fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
     const ap_uint<64> params[PARAM_COUNT],
-    const ap_uint<32> sprite_data[SPRITE_SIZE * SPRITE_SIZE]);
+    const ap_uint<64> sprite_data[SPRITE_LINEBUF_SIZE * SPRITE_SIZE]);
 }
