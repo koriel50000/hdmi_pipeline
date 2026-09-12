@@ -269,7 +269,7 @@ def main():
     params.flush()
 
     sprite_data = allocate(shape=(8 * 256,), dtype=np.uint64)
-    sprite_data[:] = np.fromfile("sprite_argb.bin", dtype=np.uint64, count=8*256) 
+    sprite_data[:] = np.uint64(-1) #np.fromfile("sprite_argb.bin", dtype=np.uint64, count=8*256) 
     sprite_data.flush()
 
     print(pattern_overlay.register_map)

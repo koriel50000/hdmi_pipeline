@@ -126,7 +126,7 @@ void read_sprite_data(const ap_uint<64> sprite_data[SPRITE_LINEBUF_SIZE * SPRITE
 }
 
 void select_line_sprites(const Detect detects[MAX_DETECTIONS], const ap_uint<8> detect_count,
-    const ap_uint<64> sprite_buf[SPRITE_LINEBUF_SIZE * SPRITE_SIZE],
+    const ap_uint<64> sprite_data[SPRITE_LINEBUF_SIZE * SPRITE_SIZE],
     const uint16_t y, LineSprite line_sprites[MAX_LINE_SPRITES])
 {
 #pragma HLS inline
@@ -144,7 +144,7 @@ void select_line_sprites(const Detect detects[MAX_DETECTIONS], const ap_uint<8> 
                 sprite.x1 = cx - size / 2;
                 sprite.x2 = cx + size / 2;
                 for (int j = 0; j < SPRITE_LINEBUF_SIZE; j++) {
-                    sprite.linebuf[j] = sprite_buf[base * SPRITE_LINEBUF_SIZE + j];
+                    sprite.linebuf[j] = sprite_data[base * SPRITE_LINEBUF_SIZE + j];
                 }
                 const uint32_t dx = (SPRITE_SIZE << 16) / size;
                 sprite.src_x = -dx;
@@ -309,8 +309,6 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 
     static Detect detects[MAX_DETECTIONS];
     static ap_uint<8> detect_count = 0;
-    static ap_uint<64> sprite_buf[SPRITE_LINEBUF_SIZE * SPRITE_SIZE];
-#pragma HLS bind_storage variable=sprite_buf type=RAM_2P impl=lutram
 
     LineSprite line_sprites[MAX_LINE_SPRITES];
     LineBuffer line_buffer[INPUT_SIZE];
@@ -318,7 +316,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 
     bool line_boundary = true;
     for (uint16_t y = 0; y < HEIGHT; y++) {
-        select_line_sprites(detects, detect_count, sprite_buf, y, line_sprites);
+        select_line_sprites(detects, detect_count, sprite_data, y, line_sprites);
         for (uint16_t x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
             pixel_t pix = pin.read();
@@ -338,6 +336,5 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 #pragma HLS dataflow
 
     write_params(params, yunet_ins);
-    read_detects(yunet_outs, detects, detect_count);    
-    read_sprite_data(sprite_data, sprite_buf);
+    read_detects(yunet_outs, detects, detect_count);
 }
