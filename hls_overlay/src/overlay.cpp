@@ -134,13 +134,13 @@ void select_line_sprites(const Detect detects[MAX_DETECTIONS], const ap_uint<8> 
                 uint16_t cx = (detect.x1 + detect.x2) / 2;
                 sprite.x1 = cx - size / 2;
                 sprite.x2 = cx + size / 2;
-                for (int j = 0; j < SPRITE_LINEBUF_SIZE; j++) {
-#pragma HLS unroll
-                    sprite.linebuf[j] = sprite_data[base * SPRITE_LINEBUF_SIZE + j];
-                }
-                const uint32_t dx = (SPRITE_SIZE << 16) / size;
-                sprite.src_x = -dx;
-                sprite.src_dx = dx;
+//                 for (int j = 0; j < SPRITE_LINEBUF_SIZE; j++) {
+// #pragma HLS unroll
+//                     sprite.linebuf[j] = sprite_data[base * SPRITE_LINEBUF_SIZE + j];
+//                 }
+                // const uint32_t dx = (SPRITE_SIZE << 16) / size;
+                // sprite.src_x = -dx;
+                // sprite.src_dx = dx;
                 sprite.enable = true;
                 count++;
             }
@@ -161,15 +161,16 @@ void set_sprite_pixel(LineSprite line_sprites[MAX_LINE_SPRITES], const uint16_t 
 #pragma HLS unroll
         LineSprite& sprite = line_sprites[i];
         if (sprite.enable && sprite.x1 <= x && x <= sprite.x2) {
-            sprite.src_x += sprite.src_dx;
-            const uint16_t sx = sprite.src_x >> 16;
-            const uint16_t base = sx >> 5;
-            const uint8_t offset = (sx & 0x1f) << 1;
-            ap_uint<64> data = sprite.linebuf[base];
-            ap_uint<2> color = data(offset + 1, offset);
-            if (color > 0) {
-                pix.data = palette[color];
-            }
+            // sprite.src_x += sprite.src_dx;
+            // const uint16_t sx = sprite.src_x >> 16;
+            // const uint16_t base = sx >> 5;
+            // const uint8_t offset = (sx & 0x1f) << 1;
+            // ap_uint<64> data = sprite.linebuf[base];
+            // ap_uint<2> color = data(offset + 1, offset);
+            // if (color > 0) {
+            //     pix.data = palette[color];
+            // }
+            pix.data = 0x0000ff;
         }
     }
 }
