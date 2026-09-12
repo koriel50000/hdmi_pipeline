@@ -311,7 +311,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
     LineBuffer line_buffer[INPUT_SIZE];
     LineSprite line_sprites[MAX_LINE_SPRITES];
     ap_uint<64> sprite_buf[MAX_LINE_SPRITES][SPRITE_LINEBUF_SIZE];
-#pragma HLS bind_storage variable=line_buffer type=ram_1p impl=lutram
+// #pragma HLS bind_storage variable=line_buffer type=ram_1p impl=lutram
 #pragma HLS bind_storage variable=sprite_buf type=ram_1p impl=lutram
 #pragma HLS array_partition variable=line_sprites complete
 #pragma HLS array_partition variable=sprite_buf complete dim=1
