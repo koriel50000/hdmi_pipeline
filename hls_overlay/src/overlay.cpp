@@ -168,9 +168,9 @@ void set_sprite_pixel(LineSprite line_sprites[MAX_LINE_SPRITES], const uint16_t 
 #pragma HLS unroll
         LineSprite& sprite = line_sprites[i];
         if (sprite.enable && sprite.x1 <= x && x <= sprite.x2) {
-            // sprite.src_x += sprite.src_dx;
-            // const uint16_t base = sprite.src_x >> (16 + 5);
-            // const uint8_t offset = (sprite.src_x & 0x1f0000) >> 15;
+            sprite.src_x += sprite.src_dx;
+            const uint16_t base = sprite.src_x >> (16 + 5);
+            const uint8_t offset = (sprite.src_x & 0x1f0000) >> 15;
             // ap_uint<64> data = sprite.linebuf[base];
             ap_uint<2> color = 0x3; //(data >> offset) & 0x3;
             if (color == 1) {
@@ -314,6 +314,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 
     LineSprite line_sprites[MAX_LINE_SPRITES];
     LineBuffer line_buffer[INPUT_SIZE];
+#pragma HLS array_partition variable=line_sprites complete
 
     bool line_boundary = true;
     for (uint16_t y = 0; y < HEIGHT; y++) {
