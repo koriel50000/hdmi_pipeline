@@ -37,7 +37,6 @@ struct Detect {
 struct LineSprite {
     uint16_t x1;
     uint16_t x2;
-    ap_uint<64> linebuf[SPRITE_LINEBUF_SIZE];
     int32_t src_x;
     uint32_t src_dx;
     bool enable;
