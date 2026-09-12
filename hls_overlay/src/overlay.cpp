@@ -143,12 +143,12 @@ void select_line_sprites(const Detect detects[MAX_DETECTIONS], const ap_uint<8> 
                 uint16_t cx = (detect.x1 + detect.x2) / 2;
                 sprite.x1 = cx - size / 2;
                 sprite.x2 = cx + size / 2;
-                // for (int j = 0; j < SPRITE_LINEBUF_SIZE; j++) {
-                //     sprite.linebuf[j] = sprite_buf[base * SPRITE_LINEBUF_SIZE + j];
-                // }
-                // const uint32_t dx = (SPRITE_SIZE << 16) / size;
-                // sprite.src_x = -dx;
-                // sprite.src_dx = dx;
+                for (int j = 0; j < SPRITE_LINEBUF_SIZE; j++) {
+                    sprite.linebuf[j] = sprite_buf[base * SPRITE_LINEBUF_SIZE + j];
+                }
+                const uint32_t dx = (SPRITE_SIZE << 16) / size;
+                sprite.src_x = -dx;
+                sprite.src_dx = dx;
                 sprite.enable = true;
                 count++;
             }
