@@ -30,14 +30,13 @@ struct Detect {
     uint16_t y1;
     uint16_t x2;
     uint16_t y2;
-    uint16_t score;
-    uint16_t kps[10];
+    // uint16_t score;
+    // uint16_t kps[10];
 };
 
 struct LineSprite {
     uint16_t x1;
     uint16_t x2;
-    ap_uint<64> linebuf[SPRITE_LINEBUF_SIZE];
     int32_t src_x;
     uint32_t src_dx;
     bool enable;
