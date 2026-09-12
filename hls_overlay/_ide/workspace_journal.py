@@ -83,3 +83,7 @@ comp.run(operation="SYNTHESIS")
 
 comp.run(operation="PACKAGE")
 
+comp.run(operation="SYNTHESIS")
+
+comp.run(operation="PACKAGE")
+

@@ -144,7 +144,7 @@ void select_line_sprites(const Detect detects[MAX_DETECTIONS], const ap_uint<8> 
                 sprite.x1 = cx - size / 2;
                 sprite.x2 = cx + size / 2;
                 for (int j = 0; j < SPRITE_LINEBUF_SIZE; j++) {
-                    sprite.linebuf[j] = 0xe4e4e4e4e4e4e4e4; //sprite_data[base * SPRITE_LINEBUF_SIZE + j];
+                    sprite.linebuf[j] = sprite_data[base * SPRITE_LINEBUF_SIZE + j];
                 }
                 const uint32_t dx = (SPRITE_SIZE << 16) / size;
                 sprite.src_x = -dx;

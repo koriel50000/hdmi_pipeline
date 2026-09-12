@@ -274,7 +274,7 @@ def main():
 
     print(pattern_overlay.register_map)
     pattern_overlay.register_map.params_1.params = params.physical_address
-    pattern_overlay.register_map.params_1.sprite_data = sprite_data.physical_address
+    pattern_overlay.register_map.sprite_data_1.sprite_data = sprite_data.physical_address
 
     fbuf0, fbuf1, fbuf2 = video_initialize(vdma)
 
