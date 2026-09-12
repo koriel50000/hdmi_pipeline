@@ -268,8 +268,9 @@ def main():
     params[:] = np.array(param_list, dtype=np.uint64)
     params.flush()
 
-    sprite_data = allocate(shape=(8 * 256 * 64,), dtype=np.uint64)
-    sprite_data[:] = np.fromfile("sprite_2bpp.bin", dtype=np.uint64, count=8 * 256 * 64) 
+    sprite_data_size = 8 * 256 * 75
+    sprite_data = allocate(shape=(sprite_data_size,), dtype=np.uint64)
+    sprite_data[:] = np.fromfile("sprite_2bpp.bin", dtype=np.uint64, count=sprite_data_size) 
     sprite_data.flush()
 
     print(pattern_overlay.register_map)
