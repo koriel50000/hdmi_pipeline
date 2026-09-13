@@ -39,6 +39,8 @@ struct LineSprite {
     uint16_t x2;
     int32_t src_x;
     uint32_t src_dx;
+    uint64_t base;
+    ap_uint<64> buf;
     bool enable;
 };
 

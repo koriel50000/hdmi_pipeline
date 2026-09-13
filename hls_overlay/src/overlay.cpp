@@ -250,6 +250,8 @@ void select_line_sprites(const Detect detects[MAX_DETECTIONS], const uint8_t det
                 const uint32_t dx = (SPRITE_SIZE << 16) / size;
                 sprite.src_x = -dx;
                 sprite.src_dx = dx;
+                sprite.base = 0xffff;
+                sprite.buf = 0;
                 sprite.enable = true;
                 count++;
             }
@@ -274,9 +276,12 @@ void set_sprite_pixel(LineSprite line_sprites[MAX_LINE_SPRITES],
         if (sprite.enable && sprite.x1 <= x && x <= sprite.x2) {
             sprite.src_x += sprite.src_dx;
             const uint16_t base = sprite.src_x >> (16 + 5);
-            const uint8_t offset = (sprite.src_x & 0x1f0000) >> 15;
-            ap_uint<64> data = sprite_buf[i][base];
-            ap_uint<2> color = (data >> offset) & 0x3;
+            const uint8_t offset = (sprite.src_x >> 15) & 0x3e;
+            if (base != sprite.base) {
+                sprite.buf = sprite_buf[i][base];
+                sprite.base = base;
+            }            
+            ap_uint<2> color = (sprite.buf >> offset) & 0x3;
             if (color == 1) {
                 pix.data = 0x08d64a;
             } else if (color == 2) {
