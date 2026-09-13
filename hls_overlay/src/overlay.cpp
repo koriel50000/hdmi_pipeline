@@ -238,8 +238,8 @@ void select_line_sprites(const Detect detects[MAX_DETECTIONS], const uint8_t det
             const Detect& detect = detects[i];
             if (detect.y1 <= y && y <= detect.y2) {
                 LineSprite& sprite = line_sprites[count];
-                uint16_t base = y - detect.y1;
                 uint16_t size = detect.y2 - detect.y1;
+                uint16_t base = (y - detect.y1) * SPRITE_SIZE / size;
                 uint16_t cx = (detect.x1 + detect.x2) / 2;
                 sprite.x1 = cx - size / 2;
                 sprite.x2 = cx + size / 2;
