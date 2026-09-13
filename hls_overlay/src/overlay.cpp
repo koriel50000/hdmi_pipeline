@@ -118,8 +118,6 @@ constexpr int PARAM_BLOCK_COUNT = sizeof(PARAM_SIZES) / sizeof(PARAM_SIZES[0]);
 
 // void write_params(const ap_uint<64> params[PARAM_COUNT]) {
 void write_params(const ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& yunet_ins) {
-// #pragma HLS bind_storage variable=PARAM_SIZES type=ram_1p impl=lutram
-
     int ptr = 0;
     for (int j = 0; j < PARAM_BLOCK_COUNT; j++) {
         for (int i = 0; i < PARAM_SIZES[j]; i++) {
@@ -311,7 +309,6 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
     LineBuffer line_buffer[INPUT_SIZE];
     LineSprite line_sprites[MAX_LINE_SPRITES];
     ap_uint<64> sprite_buf[MAX_LINE_SPRITES][SPRITE_LINEBUF_SIZE];
-// #pragma HLS bind_storage variable=line_buffer type=ram_1p impl=lutram
 #pragma HLS bind_storage variable=sprite_buf type=ram_1p impl=lutram
 #pragma HLS array_partition variable=line_sprites complete
 #pragma HLS array_partition variable=sprite_buf complete dim=1
