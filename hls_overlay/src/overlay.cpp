@@ -304,7 +304,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
     static Detect detects[MAX_DETECTIONS];
     static uint8_t detect_count = 0;
     static uint8_t frame = 0;
-#pragma HLS bind_storage variable=detects type=ram_1p impl=lutram
+// #pragma HLS bind_storage variable=detects type=ram_1p impl=lutram
 
     LineBuffer line_buffer[INPUT_SIZE];
     LineSprite line_sprites[MAX_LINE_SPRITES];
