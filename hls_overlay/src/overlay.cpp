@@ -227,7 +227,7 @@ void write_input_padding(fifo<axis_data64>& yunet_ins) {
 void select_line_sprites(const Detect detects[MAX_DETECTIONS], const uint8_t detect_count,
     const ap_uint<64> sprite_data[SPRITE_LINEBUF_SIZE * SPRITE_SIZE * SPRITE_FRAME_COUNT], const uint8_t frame,
     const uint16_t y, LineSprite line_sprites[MAX_LINE_SPRITES],
-    ap_uint<64> sprite_buf[MAX_LINE_SPRITES][SPRITE_LINEBUF_SIZE])
+    ap_uint<2> sprite_buf[MAX_LINE_SPRITES][SPRITE_SIZE])
 {
 #pragma HLS inline
 
@@ -245,13 +245,16 @@ void select_line_sprites(const Detect detects[MAX_DETECTIONS], const uint8_t det
                 sprite.x2 = cx + size / 2;
                 for (int j = 0; j < SPRITE_LINEBUF_SIZE; j++) {
 #pragma HLS pipeline
-                    sprite_buf[count][j] = sprite_data[offset + base * SPRITE_LINEBUF_SIZE + j];
+                    ap_uint<64> data = sprite_data[offset + base * SPRITE_LINEBUF_SIZE + j];
+                    for (int k = 0; k < 32; k++) {
+#pragma HLS unroll
+                        sprite_buf[count][j * 32 + k] = data.range(k * 2 + 1, k * 2);
+                    }
                 }
                 const uint32_t dx = (SPRITE_SIZE << 16) / size;
                 sprite.src_x = -dx;
                 sprite.src_dx = dx;
                 sprite.base = 0xffff;
-                sprite.buf = 0;
                 sprite.enable = true;
                 count++;
             }
@@ -265,7 +268,7 @@ void select_line_sprites(const Detect detects[MAX_DETECTIONS], const uint8_t det
 }
 
 void set_sprite_pixel(LineSprite line_sprites[MAX_LINE_SPRITES],
-    const ap_uint<64> sprite_buf[MAX_LINE_SPRITES][SPRITE_LINEBUF_SIZE],
+    const ap_uint<2> sprite_buf[MAX_LINE_SPRITES][SPRITE_SIZE],
     const uint16_t x, pixel_t& pix)
 {
 #pragma HLS inline
@@ -275,13 +278,8 @@ void set_sprite_pixel(LineSprite line_sprites[MAX_LINE_SPRITES],
         LineSprite& sprite = line_sprites[i];
         if (sprite.enable && sprite.x1 <= x && x <= sprite.x2) {
             sprite.src_x += sprite.src_dx;
-            const uint16_t base = sprite.src_x >> (16 + 5);
-            const uint8_t offset = (sprite.src_x >> 15) & 0x3e;
-            if (base != sprite.base) {
-                sprite.buf = sprite_buf[i][base];
-                sprite.base = base;
-            }            
-            ap_uint<2> color = (sprite.buf >> offset) & 0x3;
+            const uint16_t pos = sprite.src_x >> 16;
+            ap_uint<2> color = sprite_buf[i][pos];
             if (color == 1) {
                 pix.data = 0x08d64a;
             } else if (color == 2) {
@@ -313,7 +311,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 
     LineBuffer line_buffer[INPUT_SIZE];
     LineSprite line_sprites[MAX_LINE_SPRITES];
-    ap_uint<64> sprite_buf[MAX_LINE_SPRITES][SPRITE_LINEBUF_SIZE];
+    ap_uint<2> sprite_buf[MAX_LINE_SPRITES][SPRITE_SIZE];
 #pragma HLS bind_storage variable=sprite_buf type=ram_1p impl=lutram
 #pragma HLS array_partition variable=line_sprites complete
 #pragma HLS array_partition variable=sprite_buf complete dim=1
