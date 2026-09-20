@@ -10,6 +10,11 @@ constexpr int INPUT_SIZE = 160;
 constexpr int PARAM_COUNT = 13440;
 constexpr int MAX_DETECTIONS = 32;
 constexpr int MAX_LINE_SPRITES = 8;
+constexpr int SPRITE_SIZE = 256;
+constexpr int SPRITE_LINEBUF_SIZE = 8;
+constexpr int SPRITE_FRAME_COUNT = 75;
+
+// constexpr int RESULT_COUNT = 1 + 16 * MAX_DETECTIONS;
 
 // @see ug1399, HLS Programmers Guide > Customizing-AXI4-Stream-Interfaces
 using axis_data64 = ap_axis<64, 0, 0, 0, (AXIS_ENABLE_DATA | AXIS_ENABLE_LAST), true>;
@@ -25,18 +30,29 @@ struct Detect {
     uint16_t y1;
     uint16_t x2;
     uint16_t y2;
-    uint16_t score;
-    uint16_t kps[10];
+    // uint16_t score;
+    // uint16_t kps[10];
 };
 
 struct LineSprite {
     uint16_t x1;
     uint16_t x2;
+    int32_t src_x;
+    uint32_t src_dx;
+    uint64_t base;
+    ap_uint<64> buf;
     bool enable;
+};
+
+struct LineBuffer {
+    ap_uint<8> r;
+    ap_uint<8> g;
+    ap_uint<8> b;
 };
 
 extern "C" {
 void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
-    // fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
-    const ap_uint<64> params[PARAM_COUNT]);
+    fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
+    const ap_uint<64> params[PARAM_COUNT],
+    const ap_uint<64> sprite_data[SPRITE_LINEBUF_SIZE * SPRITE_SIZE * SPRITE_FRAME_COUNT]);
 }
