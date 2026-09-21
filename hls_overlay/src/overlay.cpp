@@ -18,25 +18,24 @@ void write_params(const ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& yune
 
 void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], uint8_t& detect_count) {
     detect_count = outs.read().data;
+    assert(detect_count < MAX_DETECTIONS);
 
-    for (int i = 0; i < MAX_DETECTIONS; i++) {
+    for (int i = 0; i < detect_count; i++) {
 #pragma HLS pipeline 
-        if (i < detect_count) {
-            ap_uint<8> x1 = outs.read().data;
-            ap_uint<8> y1 = outs.read().data;
-            ap_uint<8> x2 = outs.read().data;
-            ap_uint<8> y2 = outs.read().data;
-            detects[i].x1 = x1 * 8;
-            detects[i].y1 = y1 * 8;
-            detects[i].x2 = x2 * 8;
-            detects[i].y2 = y2 * 8;
-            ap_int<8> hi = outs.read().data;
-            ap_int<8> lo = outs.read().data;
-            // detects[i].score = (hi, lo);
-            for (int k = 0; k < 10; k++) {
-                ap_uint<8> kps = outs.read().data;
-                // detects[i].kps[k] = kps * 8;
-            }
+        ap_uint<8> x1 = outs.read().data;
+        ap_uint<8> y1 = outs.read().data;
+        ap_uint<8> x2 = outs.read().data;
+        ap_uint<8> y2 = outs.read().data;
+        detects[i].x1 = x1 * 8;
+        detects[i].y1 = y1 * 8;
+        detects[i].x2 = x2 * 8;
+        detects[i].y2 = y2 * 8;
+        ap_int<8> hi = outs.read().data;
+        ap_int<8> lo = outs.read().data;
+        // detects[i].score = (hi, lo);
+        for (int k = 0; k < 10; k++) {
+            ap_uint<8> kps = outs.read().data;
+            // detects[i].kps[k] = kps * 8;
         }
     }
 }
@@ -109,10 +108,11 @@ void select_line_sprites(const Detect detects[MAX_DETECTIONS], const uint8_t det
 {
 #pragma HLS inline
 
+    assert(detect_count < MAX_DETECTIONS);
     int offset = frame * SPRITE_LINEBUF_SIZE * SPRITE_SIZE;
     int count = 0;
-    for (int i = 0; i < MAX_DETECTIONS; i++) {
-        if (i < detect_count && count < MAX_LINE_SPRITES) {
+    for (int i = 0; i < detect_count; i++) {
+        if (count < MAX_LINE_SPRITES) {
             const Detect& detect = detects[i];
             if (detect.y1 <= y && y <= detect.y2) {
                 LineSprite& sprite = line_sprites[count];
