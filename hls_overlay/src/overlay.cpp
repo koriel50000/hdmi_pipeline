@@ -1,145 +1,23 @@
 #include "overlay.hpp"
 #include <cstdint>
 
-constexpr int PARAM_SIZES[] = {
-    // YuNetBackbone stage0
-    // Conv_head
-    16 * 9 + 16 * 4,
-    // Conv_head ConvDPUnit
-    16 * 1 + 16 * 4,
-    16 * 1 + 16 * 4,
-    // YuNetBackbone stage1
-    // YuNetBackbone Conv4layerBlock 1
-    16 * 1 + 16 * 4,
-    16 * 1 + 16 * 4,
-    // YuNetBackbone Conv4layerBlock 2
-    64 * 1 + 64 * 4,
-    64 * 1 + 64 * 4,
-    // YuNetBackbone stage2
-    // YuNetBackbone Conv4layerBlock 1
-    64 * 1 * 4 + 64 * 4,
-    64 * 1 + 64 * 4,
-    // YuNetBackbone Conv4layerBlock 2
-    64 * 1 * 4 + 64 * 4,
-    64 * 1 + 64 * 4,
-    // YuNetBackbone stage3
-    // YuNetBackbone Conv4layerBlock 1
-    64 * 1 * 4 + 64 * 4,
-    64 * 1 + 64 * 4,
-    // YuNetBackbone Conv4layerBlock 2
-    64 * 1 * 4 + 64 * 4,
-    64 * 1 + 64 * 4,
-    // YuNetBackbone stage4
-    // YuNetBackbone Conv4layerBlock 1
-    64 * 1 * 4 + 64 * 4,
-    64 * 1 + 64 * 4,
-    // YuNetBackbone Conv4layerBlock 2
-    64 * 1 * 4 + 64 * 4,
-    64 * 1 + 64 * 4,
-    // YuNetBackbone stage5
-    // YuNetBackbone Conv4layerBlock 1
-    64 * 1 * 4 + 64 * 4,
-    64 * 1 + 64 * 4,
-    // YuNetBackbone Conv4layerBlock 2
-    64 * 1 * 4 + 64 * 4,
-    64 * 1 + 64 * 4,
-
-    // TFPN stride32
-    // TFPN ConvDPUnit
-    64 * 1 * 4 + 64 * 4,
-    64 * 1 + 64 * 4,
-    // TFPN stride16
-    // TFPN ConvDPUnit
-    64 * 1 * 4 + 64 * 4,
-    64 * 1 + 64 * 4,
-    // TFPN stride8
-    // TFPN ConvDPUnit
-    64 * 1 * 4 + 64 * 4,
-    64 * 1 + 64 * 4,
-    // YuNet_Head stride8
-    // YuNet_Head shared ConvDPUnit
-    64 * 1 * 4 + 64 * 4,
-    64 * 1 + 64 * 4,
-    // YuNet_Head stride16
-    // YuNet_Head shared ConvDPUnit
-    64 * 1 * 4 + 64 * 4,
-    64 * 1 + 64 * 4,
-    // YuNet_Head stride32
-    // YuNet_Head shared ConvDPUnit
-    64 * 1 * 4 + 64 * 4,
-    64 * 1 + 64 * 4,
-
-    // YuNet_Head cls ConvDPUnit
-    // YuNet_Head stride8
-    1 * 1 * 4 + 1 * 4,
-    1 * 1 + 1 * 4,
-    // YuNet_Head stride16
-    1 * 1 * 4 + 1 * 4,
-    1 * 1 + 1 * 4,
-    // YuNet_Head stride32
-    1 * 1 * 4 + 1 * 4,
-    1 * 1 + 1 * 4,
-
-    // YuNet_Head bbox ConvDPUnit
-    // YuNet_Head stride8
-    4 * 1 * 4 + 4 * 4,
-    4 * 1 + 4 * 4,
-    // YuNet_Head stride16
-    4 * 1 * 4 + 4 * 4,
-    4 * 1 + 4 * 4,
-    // YuNet_Head stride32
-    4 * 1 * 4 + 4 * 4,
-    4 * 1 + 4 * 4,
-
-    // YuNet_Head obj ConvDPUnit
-    // YuNet_Head stride8
-    1 * 1 * 4 + 1 * 4,
-    1 * 1 + 1 * 4,
-    // YuNet_Head stride16
-    1 * 1 * 4 + 1 * 4,
-    1 * 1 + 1 * 4,
-    // YuNet_Head stride32
-    1 * 1 * 4 + 1 * 4,
-    1 * 1 + 1 * 4,
-
-    // YuNet_Head kps ConvDPUnit
-    // YuNet_Head stride8
-    10 * 1 * 4 + 10 * 4,
-    10 * 1 + 10 * 4,
-    // YuNet_Head stride16
-    10 * 1 * 4 + 10 * 4,
-    10 * 1 + 10 * 4,
-    // YuNet_Head stride32
-    10 * 1 * 4 + 10 * 4,
-    10 * 1 + 10 * 4
-};
-
-constexpr int PARAM_BLOCK_COUNT = sizeof(PARAM_SIZES) / sizeof(PARAM_SIZES[0]);
-
-// void write_params(const ap_uint<64> params[PARAM_COUNT]) {
 void write_params(const ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& yunet_ins) {
     int ptr = 0;
     for (int j = 0; j < PARAM_BLOCK_COUNT; j++) {
-        for (int i = 0; i < PARAM_SIZES[j]; i++) {
+        int size = params[ptr++];
+        assert(size <= 512);
+        for (int i = 0; i < size; i++) {
 #pragma HLS pipeline 
             axis_data64 pkt;
             pkt.data = params[ptr++];
-            pkt.last = (i == PARAM_SIZES[j] - 1);
+            pkt.last = (i == size - 1);
             yunet_ins.write(pkt);
         }
     }
 }
 
-// void read_detects(Detect detects[MAX_DETECTIONS], uint8_t& count) {
 void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], uint8_t& detect_count) {
     detect_count = outs.read().data;
-
-    // detects[0] = Detect{ 48, 36, 84, 84, 49153, { 56, 53, 67, 51, 61, 59, 57, 66, 70, 66 } };
-    // detects[1] = Detect{ 110, 65, 146, 113, 45942, { 126, 83, 138, 83, 134, 89, 129, 98, 138, 98 } };
-    // detects[2] = Detect{ 11, 121, 47, 157, 45942, { 24, 136, 35, 136, 30, 139, 24, 147, 35, 145 } };
-    // detects[3] = Detect{ 13, 33, 35, 63, 42237, { 19, 43, 25, 43, 22, 49, 19, 54, 27, 54 } };
-    // detects[4] = Detect{ 131, 38, 157, 68, 38874, { 144, 49, 150, 49, 150, 53, 145, 59, 154, 59 } };
-    // detects[5] = Detect{ 70, 97, 106, 145, 35739, { 88, 115, 96, 115, 93, 121, 88, 130, 96, 130 } };
 
     for (int i = 0; i < MAX_DETECTIONS; i++) {
 #pragma HLS pipeline 
