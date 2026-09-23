@@ -195,12 +195,8 @@ def create_param_list():
     ]
 
     params = []
-    for i in range(0, len(names), 2):
-        weight = globals()[names[i]]
-        threshold = globals()[names[i + 1]]
-        params.append(len(weight) + len(threshold))
-        params.extend(weight)
-        params.extend(threshold)
+    for name in names:
+        params.extend(globals()[name])
 
     return np.array(params, dtype=np.uint64)
 

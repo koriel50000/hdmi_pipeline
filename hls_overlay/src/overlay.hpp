@@ -7,8 +7,7 @@ constexpr int WIDTH = 1280;
 constexpr int HEIGHT = 720;
 
 constexpr int INPUT_SIZE = 160;
-constexpr int PARAM_BLOCK_COUNT = 59;
-constexpr int PARAM_COUNT = 13440 + PARAM_BLOCK_COUNT;
+constexpr int PARAM_COUNT = 13440;
 constexpr int MAX_DETECTIONS = 32;
 constexpr int MAX_LINE_SPRITES = 8;
 constexpr int SPRITE_SIZE = 256;
