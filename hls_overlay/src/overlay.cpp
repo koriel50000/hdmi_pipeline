@@ -132,7 +132,7 @@ void write_params(const ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& yune
 void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], uint8_t& detect_count) {
     detect_count = outs.read().data;
 
-    for (int i = 0; i < detect_count; i++) {
+    for (uint8_t i = 0; i < detect_count; i++) {
 #pragma HLS pipeline
         ap_uint<8> x1 = outs.read().data;
         ap_uint<8> y1 = outs.read().data;
@@ -222,7 +222,7 @@ void select_line_sprites(const Detect detects[MAX_DETECTIONS], const uint8_t det
 
     int offset = frame * SPRITE_LINEBUF_SIZE * SPRITE_SIZE;
     int count = 0;
-    for (int i = 0; i < detect_count; i++) {
+    for (uint8_t i = 0; i < detect_count; i++) {
         if (count < MAX_LINE_SPRITES) {
             const Detect& detect = detects[i];
             if (detect.y1 <= y && y <= detect.y2) {
