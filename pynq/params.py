@@ -536,7 +536,7 @@ backbone_model2_conv1_conv1_weight = [
 0xbd4a40cc246adddc,0xdcd9bd3a2ed5cbe4,0xd9ad3a95cccc433b,0xdc2535c12c2385cc, 
 0xd4a4ec44ecc54cdc,0x15348c116c6d1952,0x5d45d9be41ccbccd,0x54dd4ced25dcbd5c, 
 0xdccb4195b3abfddd,0x9b4cab2cbddc44ac,0xace3d8addbcbb5cc,0x9bcc48aabb2c435b, 
-};
+]
 
 backbone_model2_conv1_quant1_threshold = [
 # torch.Size([64, 14])
@@ -672,7 +672,7 @@ backbone_model2_conv1_conv2_weight = [
 0xfffffff44c53c5ce, 
 0xfffffff60c4ab9bb, 
 0xfffffff56c45f565, 
-};
+]
 
 backbone_model2_conv1_relu2_threshold = [
 # torch.Size([64, 7])
@@ -808,7 +808,7 @@ backbone_model2_conv2_conv1_weight = [
 0x3dec1bc5434e59b2,0xc59b233bb1cdcb6c,0x2fcf3cbd5c5d4ccc,0x58cac05444a4cc52, 
 0x2393a5cb2db4f9dc,0x53d3b34ebc3c1bcd,0xdc4a33c351cc49fc,0xb443abd63babac1b, 
 0xd3ccc2cc2dcc5da4,0xb40cddcba9a5b353,0x82cd4d44cbbcdc4a,0xbd52342bbde42dac, 
-};
+]
 
 backbone_model2_conv2_quant1_threshold = [
 # torch.Size([64, 14])
@@ -1080,7 +1080,7 @@ backbone_model3_conv1_conv1_weight = [
 0x13522dfd4edac334,0x5b523aa65a9cd35e,0x5954d5fc53bbc4c8,0x3c44c5c2da55a42b, 
 0x5cb554ddccbdc3f4,0x5344df454bdad539,0x5e33245bc5dd333f,0x6424ba26d343cc98, 
 0xd3cd5445cec65c9d,0xb4cd3c4c5535333c,0x8c16d0d324b1c5ca,0x4eebfdc4b426b55d, 
-};
+]
 
 backbone_model3_conv1_quant1_threshold = [
 # torch.Size([64, 14])
@@ -1352,7 +1352,7 @@ backbone_model3_conv2_conv1_weight = [
 0xd6846da4a4ca8dda,0x3bdccc9c41bdb42d,0x43d3cabb8d3c3c5b,0xacf6bcd4cdc3d44b, 
 0x524340c5546cdccb,0x6bdd55ae2ddc5cc3,0xb4cb2d4c4df36538,0x4c45cb3c43b34335, 
 0xa424455dd6146562,0x4b553c2e4cd5434d,0xc54bcc1bbc55c335,0x253d44d34c33b63a, 
-};
+]
 
 backbone_model3_conv2_quant1_threshold = [
 # torch.Size([64, 14])
@@ -1624,7 +1624,7 @@ backbone_model4_conv1_conv1_weight = [
 0xc30de4d5ddd4335c,0x5cacedd8d65d6cdc,0xbd1ac1da95ddd5cd,0xce52eccc4d34e5cc, 
 0xd05abccb3cd34ccc,0xeb35ccacc54addca,0x23ddbd3ddab4df44,0x882c4ddabc45cd3c, 
 0x452b35c4bcbd535d,0x88b4415dd64825c2,0xc9a425c9bc3bd4d5,0x4434cccf6b36c4c4, 
-};
+]
 
 backbone_model4_conv1_quant1_threshold = [
 # torch.Size([64, 14])
@@ -1896,7 +1896,7 @@ backbone_model4_conv2_conv1_weight = [
 0xca92345b185d3434,0xc3d943dec5345dd5,0x542cdb1bbc2443cd,0x302d92ac34ca53d2, 
 0xdcccd5dc6d052b9d,0xc5f5c4b4d4cabb5d,0xddc3615ddc464c65,0xc9cd54db15b5cddb, 
 0xb5c8344b9ac3c309,0x2ccddc3b33545de5,0xd3bb92cbc4dc3c9d,0x1a532dc3dcac229b, 
-};
+]
 
 backbone_model4_conv2_quant1_threshold = [
 # torch.Size([64, 14])
@@ -2168,7 +2168,7 @@ backbone_model5_conv1_conv1_weight = [
 0x4a534c4344535cac,0x53b23ccbbb4fa5ec,0xd92c45a54c3b5c39,0x933c1d5424cc94c4, 
 0x66caddb9525c1dc5,0xed54553dbd2245d3,0xc3d055dd4345cb24,0xcd4c5bdcc3ddd45, 
 0x560d5dd43ab343a5,0xce4442a24cc48d5a,0x54d45d4d2c2de030,0x444ab5abb84b145b, 
-};
+]
 
 backbone_model5_conv1_quant1_threshold = [
 # torch.Size([64, 14])
@@ -2440,7 +2440,7 @@ backbone_model5_conv2_conv1_weight = [
 0xdd36a3445169cc52,0x8d4d2cd1d31cdb24,0x1baa4dcdb4c4cbdc,0xc8cc5dbd1ab26db3, 
 0x4c44bcaa53c1ca32,0x45dc53d4b4c424bb,0x5dd26c4cc5ab285e,0xddaf41e5cebcd5ab, 
 0x4ab4d5bb259895bd,0xcbeddbdc22c33bce,0xbcddc3c4b61c3c55,0xb5b434c51d5dd4cd, 
-};
+]
 
 backbone_model5_conv2_quant1_threshold = [
 # torch.Size([64, 14])
@@ -2712,7 +2712,7 @@ neck_lateral_convs_0_conv1_weight = [
 0x4a585193c944bc33,0xc4cc9b303bd5c49b,0x439c59bb4ccca1bc,0xdd68bbc3b233bc43, 
 0xc3ddea3b4ccc95bb,0x4ba284caba4e4c3b,0xd9f2da54d4442bc4,0x54d428454bc334dc, 
 0x449ccb0341322cd6,0xb51ccb324cb43d34,0x31b5daa8b322bb4b,0x9ab454543b334c95, 
-};
+]
 
 neck_lateral_convs_0_quant1_threshold = [
 # torch.Size([64, 14])
@@ -2984,7 +2984,7 @@ neck_lateral_convs_1_conv1_weight = [
 0x4c4ccd38b4c1a24d,0xad4bccc5dccdd4cc,0xac4cc25bdb51cddd,0x4c5c3c46ddc255ab, 
 0x4dd034ebbd2eaec5,0xb3ba83c55f285cb4,0xdddc5cdbb2bc3b42,0xc3d3d5cd55494d4a, 
 0x219332abc445c34a,0xccddb4cad934ac35,0xb0bcccfc244d44ac,0xdcbb4e613b45a5c3, 
-};
+]
 
 neck_lateral_convs_1_quant1_threshold = [
 # torch.Size([64, 14])
@@ -3256,7 +3256,7 @@ neck_lateral_convs_2_conv1_weight = [
 0xda335494c4423535,0x43305bc3e34b33bc,0x5c3233d5b4d955fb,0x445518a3f34531b2, 
 0x4c5bd45a463dac04,0xdddc2cd4411c8dbd,0xbcd3c4a5c3f35344,0xdc50cc536ca9542a, 
 0x2343c5d54449f2a2,0x43345443954acdbb,0x5364fd33acada043,0xce44b4f4a489522b, 
-};
+]
 
 neck_lateral_convs_2_quant1_threshold = [
 # torch.Size([64, 14])
@@ -3528,7 +3528,7 @@ bbox_head_multi_level_share_convs_0_0_conv1_weight = [
 0x4ba5c3b4c4633abd,0xcaae239dca3555cd,0x48324cb24a4b03af,0x5b52eae5b543aac2, 
 0xc3a3c33f808ab833,0x8bbbb2a3faaa2a24,0x432e1413bbd4a8d9,0xc99b494f940b123c, 
 0x19c453b1b463bb32,0xd5cc333b644344bc,0xa185349d330b925c,0x334bb3c42fb2b3c6, 
-};
+]
 
 bbox_head_multi_level_share_convs_0_0_quant1_threshold = [
 # torch.Size([64, 14])
@@ -3800,7 +3800,7 @@ bbox_head_multi_level_share_convs_1_0_conv1_weight = [
 0x5d549320404bb329,0x543c94d41d5c4b25,0x544eccdc34d51dc3,0xdd4abcd443b55b25, 
 0xaa3bdd3ccc4cbc24,0xabb38ab12cbabb24,0xbccbc6bb2123cacd,0xa19bbca05b4124d4, 
 0xcddbb1b43c44bdd4,0xdbb56c5436c3dd2c,0xedb5cd3b3d5b924b,0x86bcb81fbcbca354, 
-};
+]
 
 bbox_head_multi_level_share_convs_1_0_quant1_threshold = [
 # torch.Size([64, 14])
@@ -4072,7 +4072,7 @@ bbox_head_multi_level_share_convs_2_0_conv1_weight = [
 0xdc359a4b2432dd46,0x345959b3ba4382ab,0x3a33bd433134942c,0x53b3b5853d63d910, 
 0xa2d6c4cdcda44525,0xc5c45434dbb4b53d,0x31fcc354b4443c13,0xfc2c4446c5bc4cc5, 
 0x44b3442cad425435,0xbd44653bd45c543b,0x31354555d4441345,0xc2434595c68ca29b, 
-};
+]
 
 bbox_head_multi_level_share_convs_2_0_quant1_threshold = [
 # torch.Size([64, 14])
@@ -4301,7 +4301,7 @@ bbox_head_multi_level_cls_0_quant2_threshold = [
 bbox_head_multi_level_cls_1_conv1_weight = [
 # torch.Size([1, 1, 1, 64])
 0x424dddfc444cec4b,0x4bd4dbc54cd345d4,0xdcdbdadcd8bd55d4,0x5dbd5cc0d8eddca4, 
-};
+]
 
 bbox_head_multi_level_cls_1_quant1_threshold = [
 # torch.Size([1, 14])
@@ -4311,7 +4311,7 @@ bbox_head_multi_level_cls_1_quant1_threshold = [
 bbox_head_multi_level_cls_1_conv2_weight = [
 # torch.Size([1, 1, 1, 9])
 0xfffffffeedeeeedd, 
-};
+]
 
 bbox_head_multi_level_cls_1_quant2_threshold = [
 # torch.Size([1, 14])
@@ -4321,7 +4321,7 @@ bbox_head_multi_level_cls_1_quant2_threshold = [
 bbox_head_multi_level_cls_2_conv1_weight = [
 # torch.Size([1, 1, 1, 64])
 0x224002ab2a0a2b82,0xc9ba4b3b4202bb30,0xc1b45ab2bcfb99cb,0x2b6cb69b1bb92b2b, 
-};
+]
 
 bbox_head_multi_level_cls_2_quant1_threshold = [
 # torch.Size([1, 14])
@@ -4344,7 +4344,7 @@ bbox_head_multi_level_bbox_0_conv1_weight = [
 0x488424a4cba42b9e,0x5a24bdc3cacbd4bc,0xc432daaaa343f54c,0x5b5c3d12cacc858a, 
 0xaba9a94346bcc438,0xf41c3b41ca441db2,0x4b1b332abac3db25,0xa4b5a92c423d0b24, 
 0x82223ccce344bcb,0xfd82c4d149dcb44b,0xc221bc13133b539c,0x2c2d3823cb351310, 
-};
+]
 
 bbox_head_multi_level_bbox_0_quant1_threshold = [
 # torch.Size([4, 14])
@@ -4360,7 +4360,7 @@ bbox_head_multi_level_bbox_0_conv2_weight = [
 0xfffffff3325620af, 
 0xfffffffdddedceca, 
 0xfffffff554664541, 
-};
+]
 
 bbox_head_multi_level_bbox_0_quant2_threshold = [
 # torch.Size([4, 14])
@@ -4376,7 +4376,7 @@ bbox_head_multi_level_bbox_1_conv1_weight = [
 0x2425442cba3cd33c,0x342a3332c440aae2,0xc2933b94b35c2232,0xc4ccc3cca534c9db, 
 0x3d28aa2c629a8434,0x234419344aaa43b2,0x214ad84c209234c4,0x52a26a3a0b4b4bd5, 
 0x4933bacd6323c546,0x3444aa444a234bb4,0x9121ca3cc1233424,0x4aba6a3cad4922c5, 
-};
+]
 
 bbox_head_multi_level_bbox_1_quant1_threshold = [
 # torch.Size([4, 14])
@@ -4392,7 +4392,7 @@ bbox_head_multi_level_bbox_1_conv2_weight = [
 0xfffffff444565bab, 
 0xfffffffeedeecddb, 
 0xfffffffddbdecddc, 
-};
+]
 
 bbox_head_multi_level_bbox_1_quant2_threshold = [
 # torch.Size([4, 14])
@@ -4408,7 +4408,7 @@ bbox_head_multi_level_bbox_2_conv1_weight = [
 0x54c443c5c44c32b3,0x4a24923c43cc43b3,0xb3233c4a3b4e4423,0x44332452d3d434cc, 
 0x9ac94c5bc31ccc6c,0xbdccacbdcc4d5ba1,0xbacbbc1bcc64b52c,0x4cb2cb4c3c3ba43c, 
 0x22a2c4d34cbc44e4,0x1143c44554c4d339,0x844333b344dc2b94,0x94433354c4432db3, 
-};
+]
 
 bbox_head_multi_level_bbox_2_quant1_threshold = [
 # torch.Size([4, 14])
@@ -4424,7 +4424,7 @@ bbox_head_multi_level_bbox_2_conv2_weight = [
 0xfffffff6566550ab, 
 0xfffffff56465454a, 
 0xfffffffeedeedc39, 
-};
+]
 
 bbox_head_multi_level_bbox_2_quant2_threshold = [
 # torch.Size([4, 14])
@@ -4437,7 +4437,7 @@ bbox_head_multi_level_bbox_2_quant2_threshold = [
 bbox_head_multi_level_obj_0_conv1_weight = [
 # torch.Size([1, 1, 1, 64])
 0xd5c344a3a33cb4ab,0x45ccaba4ccaa2fc6,0xa0a2a9ddc5c44243,0xb9dbdbd5a5620dd4, 
-};
+]
 
 bbox_head_multi_level_obj_0_quant1_threshold = [
 # torch.Size([1, 14])
@@ -4447,7 +4447,7 @@ bbox_head_multi_level_obj_0_quant1_threshold = [
 bbox_head_multi_level_obj_0_conv2_weight = [
 # torch.Size([1, 1, 1, 9])
 0xfffffffaabadc0eb, 
-};
+]
 
 bbox_head_multi_level_obj_0_quant2_threshold = [
 # torch.Size([1, 14])
@@ -4457,7 +4457,7 @@ bbox_head_multi_level_obj_0_quant2_threshold = [
 bbox_head_multi_level_obj_1_conv1_weight = [
 # torch.Size([1, 1, 1, 64])
 0x12a12acd3bc95214,0x26ab9c19bb9a33bb,0x4c5214d45b2dca59,0x294d39a5b35cc632, 
-};
+]
 
 bbox_head_multi_level_obj_1_quant1_threshold = [
 # torch.Size([1, 14])
@@ -4467,7 +4467,7 @@ bbox_head_multi_level_obj_1_quant1_threshold = [
 bbox_head_multi_level_obj_1_conv2_weight = [
 # torch.Size([1, 1, 1, 9])
 0xfffffffb4a064f23, 
-};
+]
 
 bbox_head_multi_level_obj_1_quant2_threshold = [
 # torch.Size([1, 14])
@@ -4477,7 +4477,7 @@ bbox_head_multi_level_obj_1_quant2_threshold = [
 bbox_head_multi_level_obj_2_conv1_weight = [
 # torch.Size([1, 1, 1, 64])
 0xcaabb25b346ab039,0x5b0b2aaf1bd4dc29,0x5aa23bba1cbbb2cb,0x4226b34a4a94acbb, 
-};
+]
 
 bbox_head_multi_level_obj_2_quant1_threshold = [
 # torch.Size([1, 14])
@@ -4487,7 +4487,7 @@ bbox_head_multi_level_obj_2_quant1_threshold = [
 bbox_head_multi_level_obj_2_conv2_weight = [
 # torch.Size([1, 1, 1, 9])
 0xfffffffd54355466, 
-};
+]
 
 bbox_head_multi_level_obj_2_quant2_threshold = [
 # torch.Size([1, 14])
@@ -4506,7 +4506,7 @@ bbox_head_multi_level_kps_0_conv1_weight = [
 0xb8959d4c339cc336,0xd4254343c3445dc3,0x444a54a2bc33c5d3,0x4443b4bb43fc8410, 
 0xad33314c40e3cd4b,0x22ca3d4cfb33ad92,0x428e35cb4c2db1bc,0x2423ccb94bca6b36, 
 0xa1849d3c548dc346,0xd4254332c3445ec1,0x444a53b3ac42c4d4,0x5340a42b532c9411, 
-};
+]
 
 bbox_head_multi_level_kps_0_quant1_threshold = [
 # torch.Size([10, 14])
@@ -4534,7 +4534,7 @@ bbox_head_multi_level_kps_0_conv2_weight = [
 0xfffffffbcadebb99, 
 0xfffffffdbaeb8db8, 
 0xfffffffcbadebaf8, 
-};
+]
 
 bbox_head_multi_level_kps_0_quant2_threshold = [
 # torch.Size([10, 14])
@@ -4562,7 +4562,7 @@ bbox_head_multi_level_kps_1_conv1_weight = [
 0xa8b64d34bbcc03bc,0xa380dcbbacdb03da,0x923b5b14fabccbab,0xcd3bcdbb26acc4bc, 
 0x4c39513a23339342,0x32a22803212546b3,0xa8b3de39333134a2,0x328b329c2cab5fb0, 
 0x393ec5cc34340b34,0x3cfa543424532a52,0xfbc2d42cf3441022,0x45b3443f8e243a24, 
-};
+]
 
 bbox_head_multi_level_kps_1_quant1_threshold = [
 # torch.Size([10, 14])
@@ -4590,7 +4590,7 @@ bbox_head_multi_level_kps_1_conv2_weight = [
 0xfffffff352565f40, 
 0xfffffffcebcec9cf, 
 0xfffffffbccdecaa9, 
-};
+]
 
 bbox_head_multi_level_kps_1_quant2_threshold = [
 # torch.Size([10, 14])
@@ -4618,7 +4618,7 @@ bbox_head_multi_level_kps_2_conv1_weight = [
 0x5345d2934cdf43e3,0xc834d332f30ac245,0xc34341d334c55a43,0x3d541443b3425da2, 
 0x4355d2c4dca443d4,0x9a33442c82cad843,0xc2433b5a501c5e23,0x534a0314c44b5335, 
 0xdcce6c1bc454cc5b,0x1abb5bbc2cba3bcd,0x3bbcca5dcb5ddacb,0x95d91ccb3cd1e54b, 
-};
+]
 
 bbox_head_multi_level_kps_2_quant1_threshold = [
 # torch.Size([10, 14])
@@ -4646,7 +4646,7 @@ bbox_head_multi_level_kps_2_conv2_weight = [
 0xfffffffdeddddccb, 
 0xfffffffeecddcccb, 
 0xfffffff666655443, 
-};
+]
 
 bbox_head_multi_level_kps_2_quant2_threshold = [
 # torch.Size([10, 14])
