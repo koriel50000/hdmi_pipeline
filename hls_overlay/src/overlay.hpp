@@ -22,6 +22,8 @@ using axis_data8 = ap_axis<8, 0, 0, 0, (AXIS_ENABLE_DATA | AXIS_ENABLE_LAST), tr
 
 using pixel_t = ap_axiu<24,1,1,1>;
 
+using video_t = ap_uint<24>[90][160];
+
 template <typename T>
 using fifo = hls::stream<T>;
 
