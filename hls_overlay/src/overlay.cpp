@@ -319,9 +319,9 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             pixel_t pix = pin.read();
             ap_uint<24> rbg = pix.data;
             if (y >= 630 && x >= 1120) {
-                pix.data = video_buf[y / 8][x / 8];
+                pix.data = video_buf[y / 8][x / 8].to_uint();
             } else {
-                set_sprite_pixel(line_sprites, sprite_buf, x, pix);            
+                //set_sprite_pixel(line_sprites, sprite_buf, x, pix);            
             }
             pout.write(pix);
             update_line_buffer(line_buffer, x, line_boundary, rbg);
