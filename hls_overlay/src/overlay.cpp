@@ -198,7 +198,7 @@ void write_input_line(LineBuffer line_buffer[INPUT_SIZE], fifo<axis_data64>& yun
         pkt.data = rgb.to_uint64();
         pkt.last = (cx == INPUT_SIZE - 1);
         yunet_ins.write(pkt);                
-        ap_uint<24> rbg = (buf.r & 0xe0, buf.b & 0xe0, buf.g & 0xe0);
+        ap_uint<24> rbg = (buf.r, buf.b, buf.g);
         video_buf[cy][cx] = rbg;
     }    
 }
@@ -317,8 +317,8 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 #pragma HLS array_partition variable=line_sprites complete
 #pragma HLS array_partition variable=sprite_buf complete dim=1
 
-    video_t video_buf1 = { 0 };
-    video_t video_buf2 = { 0 };
+    static video_t video_buf1 = { 0 };
+    static video_t video_buf2 = { 0 };
 
     bool line_boundary = true;
     for (uint16_t y = 0; y < HEIGHT; y++) {
@@ -327,7 +327,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 #pragma HLS pipeline
             pixel_t pix = pin.read();
             ap_uint<24> rbg = pix.data;
-            if (y >= 630 && x >= 1120) {
+            if ((y >= HEIGHT - 90) && (x >= WIDTH - 160)) {
                 pix.data = video_buf2[y / 8][x / 8].to_uint();
             } else {
                 //set_sprite_pixel(line_sprites, sprite_buf, x, pix);            
