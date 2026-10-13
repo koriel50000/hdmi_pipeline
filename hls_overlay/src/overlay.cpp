@@ -317,8 +317,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 #pragma HLS array_partition variable=line_sprites complete
 #pragma HLS array_partition variable=sprite_buf complete dim=1
 
-    static video_t video_buf1 = { 0 };
-    static video_t video_buf2 = { 0 };
+    static video_t video_buf = { 0 };
 
     bool line_boundary = true;
     for (uint16_t y = 0; y < HEIGHT; y++) {
@@ -328,7 +327,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             pixel_t pix = pin.read();
             ap_uint<24> rbg = pix.data;
             if ((y >= HEIGHT - 90) && (x >= WIDTH - 160)) {
-                pix.data = video_buf2[y / 8][x / 8].to_uint();
+                pix.data = video_buf[y - 90][x - 160].to_uint();
             } else {
                 //set_sprite_pixel(line_sprites, sprite_buf, x, pix);            
             }
@@ -337,7 +336,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
         }
         line_boundary = ((y & 0x07) == 7);
         if (line_boundary) {
-            write_input_line(line_buffer, yunet_ins, video_buf1, y / 8);
+            write_input_line(line_buffer, yunet_ins, video_buf, y / 8);
         }
     }
 
@@ -347,7 +346,6 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 
     write_params(params, yunet_ins);
     read_detects(yunet_outs, detects, detect_count);
-    copy_video(video_buf1, video_buf2);
     frame++;
     if (frame == SPRITE_FRAME_COUNT) {
         frame = 0;
