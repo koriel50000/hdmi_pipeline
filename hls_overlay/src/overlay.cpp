@@ -326,8 +326,8 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 #pragma HLS pipeline
             pixel_t pix = pin.read();
             ap_uint<24> rbg = pix.data;
-            if ((y >= HEIGHT - 90) && (x >= WIDTH - 160)) {
-                pix.data = video_buf[y - 90][x - 160].to_uint();
+            if (y >= 360 && x >= 640) {
+                pix.data = 0xff0000; //video_buf[y - 630][x - 1120].to_uint();
             } else {
                 //set_sprite_pixel(line_sprites, sprite_buf, x, pix);            
             }

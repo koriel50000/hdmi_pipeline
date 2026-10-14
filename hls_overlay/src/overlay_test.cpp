@@ -9,6 +9,7 @@ int main ()
     fifo<axis_data64> yunet_ins;
     fifo<axis_data8> yunet_outs;
     const ap_uint<64> params[PARAM_COUNT] = {};
+    const ap_uint<64> sprite_data[SPRITE_LINEBUF_SIZE * SPRITE_SIZE * SPRITE_FRAME_COUNT] = {};
 
     // int ptr = 0;
     // for (uint16_t y = 0; y < INPUT_SIZE; y++) {
@@ -33,9 +34,7 @@ int main ()
     // pkt.last = 1;
     // yunet_outs.write(pkt);
 
-    printf("pattern_overlay-in\n");
-    pattern_overlay(pin, pout, yunet_ins, yunet_outs, params);
-    printf("pattern_overlay-out\n");
+    pattern_overlay(pin, pout, yunet_ins, yunet_outs, params, sprite_data);
 
     return 0;
 }
