@@ -321,33 +321,33 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 
     bool line_boundary = true;
     for (uint16_t y = 0; y < HEIGHT; y++) {
-        // select_line_sprites(detects, detect_count, sprite_data, frame, y, line_sprites, sprite_buf);
+        select_line_sprites(detects, detect_count, sprite_data, frame, y, line_sprites, sprite_buf);
         for (uint16_t x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
             pixel_t pix = pin.read();
             ap_uint<24> rbg = pix.data;
-            if (y >= 360 && x >= 640) {
-                pix.data = 0xff0000; //video_buf[y - 630][x - 1120].to_uint();
+            if (y >= 630 && x >= 1120) {
+                pix.data = video_buf[y - 630][x - 1120].to_uint();
             } else {
-                //set_sprite_pixel(line_sprites, sprite_buf, x, pix);            
+                set_sprite_pixel(line_sprites, sprite_buf, x, pix);            
             }
             pix.last = (x == WIDTH - 1);
             pix.user = (x == 0 && y == 0);
             pout.write(pix);
-            // update_line_buffer(line_buffer, x, line_boundary, rbg);
+            update_line_buffer(line_buffer, x, line_boundary, rbg);
         }
-        // line_boundary = ((y & 0x07) == 7);
-        // if (line_boundary) {
-        //     write_input_line(line_buffer, yunet_ins, video_buf, y / 8);
-        // }
+        line_boundary = ((y & 0x07) == 7);
+        if (line_boundary) {
+            write_input_line(line_buffer, yunet_ins, video_buf, y / 8);
+        }
     }
 
-    // write_input_padding(yunet_ins);
+    write_input_padding(yunet_ins);
 
 #pragma HLS dataflow
 
-    // write_params(params, yunet_ins);
-    // read_detects(yunet_outs, detects, detect_count);
+    write_params(params, yunet_ins);
+    read_detects(yunet_outs, detects, detect_count);
     frame++;
     if (frame == SPRITE_FRAME_COUNT) {
         frame = 0;
