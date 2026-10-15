@@ -321,7 +321,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 
     bool line_boundary = true;
     for (uint16_t y = 0; y < HEIGHT; y++) {
-        select_line_sprites(detects, detect_count, sprite_data, frame, y, line_sprites, sprite_buf);
+        // select_line_sprites(detects, detect_count, sprite_data, frame, y, line_sprites, sprite_buf);
         for (uint16_t x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
             pixel_t pix = pin.read();
@@ -329,7 +329,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             if (y >= 630 && x >= 1120) {
                 pix.data = video_buf[y - 630][x - 1120].to_uint();
             } else {
-                set_sprite_pixel(line_sprites, sprite_buf, x, pix);            
+                // set_sprite_pixel(line_sprites, sprite_buf, x, pix);            
             }
             pix.last = (x == WIDTH - 1);
             pix.user = (x == 0 && y == 0);
