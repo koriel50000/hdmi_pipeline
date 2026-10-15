@@ -215,7 +215,7 @@ void write_input_padding(fifo<axis_data64>& yunet_ins) {
 #pragma HLS inline
 
     axis_data64 pkt;
-    for (uint8_t cy = 0; cy < 160; cy++) {
+    for (uint8_t cy = 0; cy < 70; cy++) {
         for (uint8_t cx = 0; cx < INPUT_SIZE; cx++) {
 #pragma HLS pipeline
             pkt.data = 0;
@@ -317,7 +317,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 #pragma HLS array_partition variable=line_sprites complete
 #pragma HLS array_partition variable=sprite_buf complete dim=1
 
-    // static video_t video_buf = { 0 };
+    static video_t video_buf = { 0 };
 
     bool line_boundary = true;
     for (uint16_t y = 0; y < HEIGHT; y++) {
@@ -334,12 +334,12 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             pix.last = (x == WIDTH - 1);
             pix.user = (x == 0 && y == 0);
             pout.write(pix);
-            // update_line_buffer(line_buffer, x, line_boundary, rbg);
+            update_line_buffer(line_buffer, x, line_boundary, rbg);
         }
-        // line_boundary = ((y & 0x07) == 7);
-        // if (line_boundary) {
-        //     write_input_line(line_buffer, yunet_ins, video_buf, y / 8);
-        // }
+        line_boundary = ((y & 0x07) == 7);
+        if (line_boundary) {
+            write_input_line(line_buffer, yunet_ins, video_buf, y / 8);
+        }
     }
 
     write_input_padding(yunet_ins);
