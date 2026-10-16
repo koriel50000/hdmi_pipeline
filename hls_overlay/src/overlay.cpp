@@ -315,12 +315,12 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             } else {
                 // set_sprite_pixel(line_sprites, sprite_buf, x, pix);            
             }
-            pix.last = (x == WIDTH - 1);
-            pix.user = (x == 0 && y == 0);
-            pout.write(pix);
             if (line_boundary) {
                 update_line_buffer(line_buf, x, rbg);
             }
+            pix.last = (x == WIDTH - 1);
+            pix.user = (x == 0 && y == 0);
+            pout.write(pix);
         }
         line_boundary = ((y & 0x07) == 7);
         if (line_boundary) {
