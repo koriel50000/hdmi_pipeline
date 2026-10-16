@@ -157,22 +157,22 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], uint8_
 void update_line_buffer(LineBuffer& line_buf, const uint16_t x, const ap_uint<24>& rbg) {
 #pragma HLS inline
 
-    static uint16_t r_sum = 0;
-    static uint16_t g_sum = 0;
-    static uint16_t b_sum = 0;
+    // static uint16_t r_sum = 0;
+    // static uint16_t g_sum = 0;
+    // static uint16_t b_sum = 0;
 
-    r_sum += rbg.range(23, 16);
-    g_sum += rbg.range(7, 0);
-    b_sum += rbg.range(15, 8);
+    // r_sum += ;
+    // g_sum += ;
+    // b_sum += ;
     if ((x & 0x7) == 7) {
         ap_uint<12> rgb = 0;
-        rgb.range(10, 8) = r_sum >> 8;
-        rgb.range(6, 4) = g_sum >> 8;
-        rgb.range(2, 0) = b_sum >> 8;
+        rgb.range(10, 8) = rbg.range(23, 21);
+        rgb.range(6, 4) = rbg.range(7, 5);
+        rgb.range(2, 0) = rbg.range(15, 13);
         line_buf[x >> 3] = rgb;
-        r_sum = 0;
-        g_sum = 0;
-        b_sum = 0;
+        // r_sum = 0;
+        // g_sum = 0;
+        // b_sum = 0;
     }    
 }
 
@@ -308,9 +308,9 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             if (y >= 630 && x >= 1120) {
                 ap_uint<12> rgb = video_buf[y - 630][x - 1120];
                 rbg = 0;
-                rbg.range(22, 20) = rgb.range(10, 8);
-                rbg.range(14, 12) = rgb.range(6, 4);
-                rbg.range( 6,  4) = rgb.range(2, 0);
+                rbg.range(23, 21) = rgb.range(10, 8);
+                rbg.range(15, 13) = rgb.range(6, 4);
+                rbg.range( 7,  5) = rgb.range(2, 0);
                 pix.data = rbg;
             } else {
                 // set_sprite_pixel(line_sprites, sprite_buf, x, pix);            
