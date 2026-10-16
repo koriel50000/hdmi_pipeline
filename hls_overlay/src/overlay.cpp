@@ -186,7 +186,7 @@ void write_input_line(LineBuffer& line_buf, fifo<axis_data64>& yunet_ins, VideoB
         pkt.data = rgb.to_uint64();
         pkt.last = (cx == INPUT_SIZE - 1);
         yunet_ins.write(pkt);                
-        video_buf[cy][cx] = rgb;
+        // video_buf[cy][cx] = rgb;
     }    
 }
 
@@ -315,9 +315,9 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             } else {
                 // set_sprite_pixel(line_sprites, sprite_buf, x, pix);            
             }
-            if (line_boundary) {
-                update_line_buffer(line_buf, x, rbg);
-            }
+            // if (line_boundary) {
+            //     update_line_buffer(line_buf, x, rbg);
+            // }
             pix.last = (x == WIDTH - 1);
             pix.user = (x == 0 && y == 0);
             pout.write(pix);
