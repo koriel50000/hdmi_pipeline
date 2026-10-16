@@ -22,7 +22,8 @@ using axis_data8 = ap_axis<8, 0, 0, 0, (AXIS_ENABLE_DATA | AXIS_ENABLE_LAST), tr
 
 using pixel_t = ap_axiu<24,1,1,1>;
 
-using video_t = ap_uint<24>[90][160];
+using LineBuffer = ap_uint<12>[INPUT_SIZE];
+using VideoBuffer = ap_uint<12>[90][INPUT_SIZE];
 
 template <typename T>
 using fifo = hls::stream<T>;
@@ -43,12 +44,6 @@ struct LineSprite {
     uint32_t src_dx;
     uint64_t base;
     bool enable;
-};
-
-struct LineBuffer {
-    ap_uint<8> r;
-    ap_uint<8> g;
-    ap_uint<8> b;
 };
 
 extern "C" {

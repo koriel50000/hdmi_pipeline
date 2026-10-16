@@ -154,9 +154,7 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], uint8_
     }
 }
 
-void update_line_buffer(LineBuffer line_buffer[INPUT_SIZE],
-    const uint16_t x, const bool line_boundary, const ap_uint<24>& rbg)
-{
+void update_line_buffer(LineBuffer& line_buf, const uint16_t x, const ap_uint<24>& rbg) {
 #pragma HLS inline
 
     static uint16_t r_sum = 0;
@@ -167,48 +165,29 @@ void update_line_buffer(LineBuffer line_buffer[INPUT_SIZE],
     g_sum += rbg.range(7, 0);
     b_sum += rbg.range(15, 8);
     if ((x & 0x7) == 7) {
-        ap_uint<8> r = r_sum >> 3;
-        ap_uint<8> g = g_sum >> 3;
-        ap_uint<8> b = b_sum >> 3;
-        uint8_t cx = x >> 3;
-        if (line_boundary) {
-            line_buffer[cx].r = r;
-            line_buffer[cx].g = g;
-            line_buffer[cx].b = b;
-        } else {
-            line_buffer[cx].r = (line_buffer[cx].r + r) / 2;
-            line_buffer[cx].g = (line_buffer[cx].g + g) / 2;
-            line_buffer[cx].b = (line_buffer[cx].b + b) / 2;
-        }
+        ap_uint<12> rgb = 0;
+        rgb.range(10, 8) = r_sum >> 8;
+        rgb.range(6, 4) = g_sum >> 8;
+        rgb.range(2, 0) = b_sum >> 8;
+        line_buf[x >> 3] = rgb;
         r_sum = 0;
         g_sum = 0;
         b_sum = 0;
     }    
 }
 
-void write_input_line(LineBuffer line_buffer[INPUT_SIZE], fifo<axis_data64>& yunet_ins, video_t& video_buf, int cy) {
+void write_input_line(LineBuffer& line_buf, fifo<axis_data64>& yunet_ins, VideoBuffer& video_buf, int cy) {
 #pragma HLS inline
 
     axis_data64 pkt;
     for (uint8_t cx = 0; cx < INPUT_SIZE; cx++) {
 #pragma HLS pipeline
-        LineBuffer& buf = line_buffer[cx];
-        ap_uint<1> b0 = 0;
-        ap_uint<12> rgb = (b0, buf.r.range(7, 5), b0, buf.g.range(7, 5), b0, buf.b.range(7, 5));
+        ap_uint<12> rgb = line_buf[cx];
         pkt.data = rgb.to_uint64();
         pkt.last = (cx == INPUT_SIZE - 1);
         yunet_ins.write(pkt);                
-        ap_uint<24> rbg = (buf.r, buf.b, buf.g);
-        video_buf[cy][cx] = rbg;
+        video_buf[cy][cx] = rgb;
     }    
-}
-
-void copy_video(video_t& video_buf1, video_t& video_buf2) {
-    for (int y = 0; y < 90; y++) {
-        for (int x = 0; x < 160; x++) {
-            video_buf2[y][x] = video_buf1[y][x].to_uint();
-        }
-    }
 }
 
 void write_input_padding(fifo<axis_data64>& yunet_ins) {
@@ -310,15 +289,14 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
     static uint8_t frame = 0;
 // #pragma HLS bind_storage variable=detects type=ram_1p impl=lutram
 
-    LineBuffer line_buffer[INPUT_SIZE];
-    LineSprite line_sprites[MAX_LINE_SPRITES];
-    ap_uint<2> sprite_buf[MAX_LINE_SPRITES][SPRITE_SIZE];
+    static LineSprite line_sprites[MAX_LINE_SPRITES];
+    static ap_uint<2> sprite_buf[MAX_LINE_SPRITES][SPRITE_SIZE];
 #pragma HLS bind_storage variable=sprite_buf type=ram_1p impl=lutram
-#pragma HLS array_partition variable=line_buffer complete
 #pragma HLS array_partition variable=line_sprites complete
 #pragma HLS array_partition variable=sprite_buf complete dim=1
 
-    static video_t video_buf = { 0 };
+    static LineBuffer line_buf;
+    static VideoBuffer video_buf = { 0 };
 
     bool line_boundary = true;
     for (uint16_t y = 0; y < HEIGHT; y++) {
@@ -328,18 +306,25 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             pixel_t pix = pin.read();
             ap_uint<24> rbg = pix.data;
             if (y >= 630 && x >= 1120) {
-                // pix.data = video_buf[y - 630][x - 1120].to_uint();
+                ap_uint<12> rgb = video_buf[y - 630][x - 1120];
+                rbg = 0;
+                rbg.range(22, 20) = rgb.range(10, 8);
+                rbg.range(14, 12) = rgb.range(6, 4);
+                rbg.range( 6,  4) = rgb.range(2, 0);
+                pix.data = rbg;
             } else {
                 // set_sprite_pixel(line_sprites, sprite_buf, x, pix);            
             }
             pix.last = (x == WIDTH - 1);
             pix.user = (x == 0 && y == 0);
             pout.write(pix);
-            update_line_buffer(line_buffer, x, line_boundary, rbg);
+            if (line_boundary) {
+                update_line_buffer(line_buf, x, rbg);
+            }
         }
         line_boundary = ((y & 0x07) == 7);
         if (line_boundary) {
-            write_input_line(line_buffer, yunet_ins, video_buf, y / 8);
+            write_input_line(line_buf, yunet_ins, video_buf, y / 8);
         }
     }
 
