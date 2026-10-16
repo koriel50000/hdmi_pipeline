@@ -323,9 +323,9 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             pout.write(pix);
         }
         line_boundary = ((y & 0x07) == 7);
-        if (line_boundary) {
-            write_input_line(line_buf, yunet_ins, video_buf, y / 8);
-        }
+        // if (line_boundary) {
+        //     write_input_line(line_buf, yunet_ins, video_buf, y / 8);
+        // }
     }
 
     write_input_padding(yunet_ins);
