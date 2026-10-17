@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<EDKSYSTEM EDWVERSION="1.2" TIMESTAMP="Sat Oct 17 21:05:33 2026" VIVADOVERSION="2025.2.1">
+<EDKSYSTEM EDWVERSION="1.2" TIMESTAMP="Sun Oct 18 08:37:50 2026" VIVADOVERSION="2025.2.1">
 
   <SYSTEMINFO ARCH="zynq" BOARD="www.digilentinc.com:pynq-z1:part0:1.0" DEVICE="7z020" NAME="design_1" PACKAGE="clg400" SPEEDGRADE="-1"/>
 
@@ -7200,7 +7200,7 @@
       </PORTS>
       <BUSINTERFACES/>
     </MODULE>
-    <MODULE COREREVISION="2114833623" FULLNAME="/pattern_overlay_0" HWVERSION="1.0" INSTANCE="pattern_overlay_0" IPTYPE="PERIPHERAL" IS_ENABLE="1" MODCLASS="PERIPHERAL" MODTYPE="pattern_overlay" VLNV="xilinx.com:hls:pattern_overlay:1.0">
+    <MODULE COREREVISION="2114834312" FULLNAME="/pattern_overlay_0" HWVERSION="1.0" INSTANCE="pattern_overlay_0" IPTYPE="PERIPHERAL" IS_ENABLE="1" MODCLASS="PERIPHERAL" MODTYPE="pattern_overlay" VLNV="xilinx.com:hls:pattern_overlay:1.0">
       <DOCUMENTS/>
       <ADDRESSBLOCKS>
         <ADDRESSBLOCK ACCESS="read-write" INTERFACE="s_axi_ctrl" NAME="Reg" RANGE="65536" USAGE="register">
@@ -7514,7 +7514,7 @@
         <PARAMETER NAME="C_S_AXI_CTRL_DATA_WIDTH" VALUE="32"/>
         <PARAMETER NAME="C_M_AXI_GMEM_ENABLE_ID_PORTS" VALUE="true"/>
         <PARAMETER NAME="C_M_AXI_GMEM_ENABLE_USER_PORTS" VALUE="false"/>
-        <PARAMETER NAME="Component_Name" VALUE="design_1_pattern_overlay_0_1"/>
+        <PARAMETER NAME="Component_Name" VALUE="design_1_pattern_overlay_0_2"/>
         <PARAMETER NAME="II" VALUE="undef"/>
         <PARAMETER NAME="clk_period" VALUE="10"/>
         <PARAMETER NAME="combinational" VALUE="0"/>
@@ -9991,7 +9991,7 @@
         <DOCUMENT SOURCE="http://www.xilinx.com/cgi-bin/docs/ipdoc?c=v_axi4s_vid_out;v=v4_0;d=pg044_v_axis_vid_out.pdf"/>
       </DOCUMENTS>
       <PARAMETERS>
-        <PARAMETER NAME="C_ADDR_WIDTH" VALUE="12"/>
+        <PARAMETER NAME="C_ADDR_WIDTH" VALUE="10"/>
         <PARAMETER NAME="C_ADDR_WIDTH_PIXEL_REMAP_420" VALUE="10"/>
         <PARAMETER NAME="C_ARBITRARY_RES_EN" VALUE="0"/>
         <PARAMETER NAME="C_COMPONENTS_PER_PIXEL" VALUE="3"/>
@@ -10026,7 +10026,7 @@
           </CONNECTIONS>
         </PORT>
         <PORT DIR="I" NAME="fid" SIGIS="undef"/>
-        <PORT DIR="O" LEFT="12" NAME="fifo_read_level" RIGHT="0" SIGIS="undef"/>
+        <PORT DIR="O" LEFT="10" NAME="fifo_read_level" RIGHT="0" SIGIS="undef"/>
         <PORT DIR="O" NAME="locked" SIGIS="undef"/>
         <PORT DIR="O" NAME="overflow" SIGIS="undef"/>
         <PORT DIR="I" LEFT="23" NAME="s_axis_video_tdata" RIGHT="0" SIGIS="undef" SIGNAME="axi_vdma_0_m_axis_mm2s_tdata">
@@ -10407,7 +10407,7 @@
         <DOCUMENT SOURCE="http://www.xilinx.com/cgi-bin/docs/ipdoc?c=v_vid_in_axi4s;v=v5_0;d=pg043_v_vid_in_axi4s.pdf"/>
       </DOCUMENTS>
       <PARAMETERS>
-        <PARAMETER NAME="C_ADDR_WIDTH" VALUE="12"/>
+        <PARAMETER NAME="C_ADDR_WIDTH" VALUE="10"/>
         <PARAMETER NAME="C_ADDR_WIDTH_PIXEL_REMAP_420" VALUE="10"/>
         <PARAMETER NAME="C_COMPONENTS_PER_PIXEL" VALUE="3"/>
         <PARAMETER NAME="C_FAMILY" VALUE="zynq"/>

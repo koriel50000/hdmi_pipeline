@@ -45,6 +45,12 @@ struct LineSprite {
     bool enable;
 };
 
+struct LineBuffer {
+    uint16_t r_sum;
+    uint16_t g_sum;
+    uint16_t b_sum;
+};
+
 extern "C" {
 void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
     fifo<axis_data64>& yunet_ins, fifo<axis_data8>& yunet_outs,
