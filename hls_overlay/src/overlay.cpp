@@ -310,12 +310,12 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             } else {
                 // set_sprite_pixel(line_sprites, sprite_buf, x, pix);            
             }
-            if (line_boundary) {
-                write_input_line(yunet_ins, video_buf, x, y, rbg);
-            }
             pix.last = (x == WIDTH - 1);
             pix.user = (x == 0 && y == 0);
             pout.write(pix);
+            if (line_boundary) {
+                write_input_line(yunet_ins, video_buf, x, y, rbg);
+            }
         }
     }
 
