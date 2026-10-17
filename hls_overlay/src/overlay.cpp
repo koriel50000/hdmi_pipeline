@@ -190,7 +190,7 @@ void write_input_padding(fifo<axis_data64>& yunet_ins) {
 #pragma HLS inline
 
     axis_data64 pkt;
-    for (uint8_t cy = 0; cy < 70 + 90; cy++) {
+    for (uint8_t cy = 0; cy < 70; cy++) {
         for (uint8_t cx = 0; cx < INPUT_SIZE; cx++) {
 #pragma HLS pipeline
             pkt.data = 0;
