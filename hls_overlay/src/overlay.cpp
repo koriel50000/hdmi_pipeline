@@ -292,11 +292,16 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 #pragma HLS array_partition variable=sprite_buf complete dim=1
 
     static VideoBuffer video_buf = { 0 };
+#pragma HLS array_partition variable=video_buf cyclic factor=INPUT_SIZE dim=2
 
     pixel_t p;
     p.data = 0;
-    p.keep = p.strb = 0x7;
-    p.user = p.last = p.id = p.dest = 0;
+    p.keep = 0x7;
+    p.strb = 0x7;
+    p.user = 0;
+    p.last = 0;
+    p.id = 0;
+    p.dest = 0;
 
     for (uint16_t y = 0; y < HEIGHT; y++) {
         bool line_boundary = (y & 0x07) == 7;
@@ -306,21 +311,21 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             pixel_t pix = pin.read();
             ap_uint<24> rbg = pix.data;
             if (y >= 630 && x >= 1120) {
-                // ap_uint<12> rgb = video_buf[y - 630][x - 1120];
-                // rbg = 0;
-                // rbg.range(23, 21) = rgb.range(10, 8);
-                // rbg.range(15, 13) = rgb.range(6, 4);
-                // rbg.range( 7,  5) = rgb.range(2, 0);
-                // pix.data = rbg;
+                ap_uint<12> rgb = video_buf[y - 630][x - 1120];
+                rbg = 0;
+                rbg.range(23, 21) = rgb.range(10, 8);
+                rbg.range(15, 13) = rgb.range(6, 4);
+                rbg.range( 7,  5) = rgb.range(2, 0);
             } else {
                 // set_sprite_pixel(line_sprites, sprite_buf, x, pix);            
             }
             if (line_boundary) {
                 write_input_line(yunet_ins, x, y, rbg);
             }
-            p.data.range(23, 16) = (x & 0x0080) > 0 ? 0xff : 0x00;
-            p.data.range(15,  8) = (x & 0x0100) > 0 ? 0xff : 0x00;
-            p.data.range( 7,  0) = (x & 0x0200) > 0 ? 0xff : 0x00;
+            // p.data.range(23, 16) = (x & 0x0080) > 0 ? 0xff : 0x00;
+            // p.data.range(15,  8) = (x & 0x0100) > 0 ? 0xff : 0x00;
+            // p.data.range( 7,  0) = (x & 0x0200) > 0 ? 0xff : 0x00;
+            p.data = rbg;
             p.last = (x == WIDTH - 1);
             p.user = (x == 0 && y == 0);
             pout.write(p);
