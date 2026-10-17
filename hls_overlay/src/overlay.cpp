@@ -176,8 +176,8 @@ void write_input_line(fifo<axis_data64>& yunet_ins,
         // video_buf[cy][cx] = rgb;
 
         axis_data64 pkt;
-        pkt.data = 0; //rgb.to_uint64();
-        pkt.last = 0; //(cx & 0x3) == 3;
+        pkt.data = rgb.to_uint64();
+        pkt.last = (cx == INPUT_SIZE - 1);
         yunet_ins.write(pkt);                
 
         r_sum = 0;
@@ -293,6 +293,11 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 
     static VideoBuffer video_buf = { 0 };
 
+    pixel_t p;
+    p.data = 0;
+    p.keep = p.strb = 0x7;
+    p.user = p.last = p.id = p.dest = 0;
+
     for (uint16_t y = 0; y < HEIGHT; y++) {
         bool line_boundary = (y & 0x07) == 7;
         // select_line_sprites(detects, detect_count, sprite_data, frame, y, line_sprites, sprite_buf);
@@ -301,21 +306,24 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             pixel_t pix = pin.read();
             ap_uint<24> rbg = pix.data;
             if (y >= 630 && x >= 1120) {
-                ap_uint<12> rgb = video_buf[y - 630][x - 1120];
-                rbg = 0;
-                rbg.range(23, 21) = rgb.range(10, 8);
-                rbg.range(15, 13) = rgb.range(6, 4);
-                rbg.range( 7,  5) = rgb.range(2, 0);
-                pix.data = rbg;
+                // ap_uint<12> rgb = video_buf[y - 630][x - 1120];
+                // rbg = 0;
+                // rbg.range(23, 21) = rgb.range(10, 8);
+                // rbg.range(15, 13) = rgb.range(6, 4);
+                // rbg.range( 7,  5) = rgb.range(2, 0);
+                // pix.data = rbg;
             } else {
                 // set_sprite_pixel(line_sprites, sprite_buf, x, pix);            
             }
             if (line_boundary) {
                 write_input_line(yunet_ins, x, y, rbg);
             }
-            // pix.last = (x == WIDTH - 1);
-            pix.user = (x == 0 && y == 0);
-            pout.write(pix);
+            p.data.range(23, 16) = (x & 0x0080) > 0 ? 0xff : 0x00;
+            p.data.range(15,  8) = (x & 0x0100) > 0 ? 0xff : 0x00;
+            p.data.range( 7,  0) = (x & 0x0200) > 0 ? 0xff : 0x00;
+            p.last = (x == WIDTH - 1);
+            p.user = (x == 0 && y == 0);
+            pout.write(p);
         }
     }
 
