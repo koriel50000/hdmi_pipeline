@@ -175,10 +175,10 @@ void write_input_line(fifo<axis_data64>& yunet_ins,
         rgb.range(2, 0) = b_sum >> (3+5);
         // video_buf[cy][cx] = rgb;
 
-        // axis_data64 pkt;
-        // pkt.data = rgb.to_uint64();
-        // pkt.last = (cx == INPUT_SIZE - 1);
-        // yunet_ins.write(pkt);                
+        axis_data64 pkt;
+        pkt.data = rgb.to_uint64();
+        pkt.last = (cx & 0x3) == 3;
+        yunet_ins.write(pkt);                
 
         r_sum = 0;
         g_sum = 0;
@@ -190,7 +190,7 @@ void write_input_padding(fifo<axis_data64>& yunet_ins) {
 #pragma HLS inline
 
     axis_data64 pkt;
-    for (uint8_t cy = 0; cy < 90 + 70; cy++) {
+    for (uint8_t cy = 0; cy < 70; cy++) {
         for (uint8_t cx = 0; cx < INPUT_SIZE; cx++) {
 #pragma HLS pipeline
             pkt.data = 0;
