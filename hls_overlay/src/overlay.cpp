@@ -294,6 +294,15 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
     static VideoBuffer video_buf = { 0 };
 #pragma HLS array_partition variable=video_buf cyclic factor=INPUT_SIZE dim=2
 
+    pixel_t p;
+    p.data = 0;
+    p.keep = 0x7;
+    p.strb = 0x7;
+    p.user = 0;
+    p.last = 0;
+    p.id = 0;
+    p.dest = 0;
+
     for (uint16_t y = 0; y < HEIGHT; y++) {
         bool line_boundary = (y & 0x07) == 7;
         // select_line_sprites(detects, detect_count, sprite_data, frame, y, line_sprites, sprite_buf);
@@ -313,8 +322,10 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             if (line_boundary) {
                 write_input_line(yunet_ins, video_buf, x, y, rbg);
             }
-            pix.user = (x == 0 && y == 0);
-            pout.write(pix);
+            p.data = rbg;
+            p.last = pix.last;
+            p.user = (x == 0 && y == 0);
+            pout.write(p);
         }
     }
 
