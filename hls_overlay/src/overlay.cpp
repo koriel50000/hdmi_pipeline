@@ -154,7 +154,7 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], uint8_
     }
 }
 
-void write_input_line(fifo<axis_data64>& yunet_ins,
+void write_input_line(fifo<axis_data64>& yunet_ins, VideoBuffer& video_buf,
     const uint16_t x, const uint16_t y, const ap_uint<24>& rbg)
 {
 #pragma HLS inline
@@ -168,12 +168,12 @@ void write_input_line(fifo<axis_data64>& yunet_ins,
     b_sum += rbg.range(15, 8);
     if ((x & 0x7) == 7) {
         uint8_t cx = x >> 3;
-        // uint8_t cy = y >> 3;
+        uint8_t cy = y >> 3;
         ap_uint<12> rgb = 0;
         rgb.range(10, 8) = r_sum >> (3+5);
         rgb.range(6, 4) = g_sum >> (3+5);
         rgb.range(2, 0) = b_sum >> (3+5);
-        // video_buf[cy][cx] = rgb;
+        video_buf[cy][cx] = rgb;
 
         axis_data64 pkt;
         pkt.data = rgb.to_uint64();
@@ -294,15 +294,6 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
     static VideoBuffer video_buf = { 0 };
 #pragma HLS array_partition variable=video_buf cyclic factor=INPUT_SIZE dim=2
 
-    pixel_t p;
-    p.data = 0;
-    p.keep = 0x7;
-    p.strb = 0x7;
-    p.user = 0;
-    p.last = 0;
-    p.id = 0;
-    p.dest = 0;
-
     for (uint16_t y = 0; y < HEIGHT; y++) {
         bool line_boundary = (y & 0x07) == 7;
         // select_line_sprites(detects, detect_count, sprite_data, frame, y, line_sprites, sprite_buf);
@@ -320,15 +311,10 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
                 // set_sprite_pixel(line_sprites, sprite_buf, x, pix);            
             }
             if (line_boundary) {
-                write_input_line(yunet_ins, x, y, rbg);
+                write_input_line(yunet_ins, video_buf, x, y, rbg);
             }
-            // p.data.range(23, 16) = (x & 0x0080) > 0 ? 0xff : 0x00;
-            // p.data.range(15,  8) = (x & 0x0100) > 0 ? 0xff : 0x00;
-            // p.data.range( 7,  0) = (x & 0x0200) > 0 ? 0xff : 0x00;
-            p.data = rbg;
-            p.last = (x == WIDTH - 1);
-            p.user = (x == 0 && y == 0);
-            pout.write(p);
+            pix.user = (x == 0 && y == 0);
+            pout.write(pix);
         }
     }
 
