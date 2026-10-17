@@ -313,7 +313,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             pix.data.range(23, 16) = (x & 0x0080) > 0 ? 0xff : 0x00;
             pix.data.range(15,  8) = (x & 0x0100) > 0 ? 0xff : 0x00;
             pix.data.range( 7,  0) = (x & 0x0200) > 0 ? 0xff : 0x00;
-            pix.last = (x == WIDTH - 1);
+            // pix.last = (x == WIDTH - 1);
             pix.user = (x == 0 && y == 0);
             pout.write(pix);
         }
