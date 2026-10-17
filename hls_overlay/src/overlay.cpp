@@ -292,12 +292,19 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 //     static VideoBuffer video_buf = { 0 };
 // #pragma HLS array_partition variable=video_buf cyclic factor=INPUT_SIZE dim=2
 
+    pixel_t pix = pin.read();
+    do {
+        pix = pin.read();
+    } while (!pix.user);
+
     for (uint16_t y = 0; y < HEIGHT; y++) {
         bool line_boundary = (y & 0x07) == 7;
         // select_line_sprites(detects, detect_count, sprite_data, frame, y, line_sprites, sprite_buf);
         for (uint16_t x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
-            pixel_t pix = pin.read();
+            if (x != 0 && y != 0) {
+                pix = pin.read();
+            }
             ap_uint<24> rbg = pix.data;
             if (y >= 630 && x >= 1120) {
                 ap_uint<12> rgb = 0; //video_buf[y - 630][x - 1120];
@@ -310,10 +317,11 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             if (line_boundary) {
                 write_input_line(yunet_ins, x, rbg);
             }
-            pix.data.range(23, 16) = (x & 0x0080) > 0 ? 0xff : 0x00;
-            pix.data.range(15,  8) = (x & 0x0100) > 0 ? 0xff : 0x00;
-            pix.data.range( 7,  0) = (x & 0x0200) > 0 ? 0xff : 0x00;
-            // pix.last = (x == WIDTH - 1);
+            // pix.data.range(23, 16) = (x & 0x0080) > 0 ? 0xff : 0x00;
+            // pix.data.range(15,  8) = (x & 0x0100) > 0 ? 0xff : 0x00;
+            // pix.data.range( 7,  0) = (x & 0x0200) > 0 ? 0xff : 0x00;
+            pix.data = rbg;
+            pix.last = (x == WIDTH - 1);
             pix.user = (x == 0 && y == 0);
             pout.write(pix);
         }
