@@ -302,7 +302,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
         // select_line_sprites(detects, detect_count, sprite_data, frame, y, line_sprites, sprite_buf);
         for (uint16_t x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
-            if (x != 0 && y != 0) {
+            if (x != 0 || y != 0) {
                 pix = pin.read();
             }
             ap_uint<24> rbg = pix.data;
