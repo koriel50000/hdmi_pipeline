@@ -22,7 +22,6 @@ using axis_data8 = ap_axis<8, 0, 0, 0, (AXIS_ENABLE_DATA | AXIS_ENABLE_LAST), tr
 
 using pixel_t = ap_axiu<24,1,1,1>;
 
-using LineBuffer = ap_uint<12>[INPUT_SIZE];
 using VideoBuffer = ap_uint<12>[90][INPUT_SIZE];
 
 template <typename T>

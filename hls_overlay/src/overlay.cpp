@@ -154,39 +154,35 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], uint8_
     }
 }
 
-void update_line_buffer(LineBuffer& line_buf, const uint16_t x, const ap_uint<24>& rbg) {
+void write_input_line(fifo<axis_data64>& yunet_ins, VideoBuffer& video_buf,
+    const uint16_t x, const uint16_t y, const ap_uint<24>& rbg)
+{
 #pragma HLS inline
 
-    // static uint16_t r_sum = 0;
-    // static uint16_t g_sum = 0;
-    // static uint16_t b_sum = 0;
+    static uint16_t r_sum = 0;
+    static uint16_t g_sum = 0;
+    static uint16_t b_sum = 0;
 
-    // r_sum += ;
-    // g_sum += ;
-    // b_sum += ;
+    r_sum += rbg.range(23, 16);
+    g_sum += rbg.range(7, 0);
+    b_sum += rbg.range(15, 8);
     if ((x & 0x7) == 7) {
+        uint8_t cx = x >> 3;
+        uint8_t cy = y >> 3;
         ap_uint<12> rgb = 0;
-        rgb.range(10, 8) = rbg.range(23, 21);
-        rgb.range(6, 4) = rbg.range(7, 5);
-        rgb.range(2, 0) = rbg.range(15, 13);
-        line_buf[x >> 3] = rgb;
-        // r_sum = 0;
-        // g_sum = 0;
-        // b_sum = 0;
-    }    
-}
+        rgb.range(10, 8) = r_sum >> (3+5);
+        rgb.range(6, 4) = g_sum >> (3+5);
+        rgb.range(2, 0) = b_sum >> (3+5);
+        video_buf[cy][cx] = rgb;
 
-void write_input_line(LineBuffer& line_buf, fifo<axis_data64>& yunet_ins, VideoBuffer& video_buf, int cy) {
-#pragma HLS inline
-
-    axis_data64 pkt;
-    for (uint8_t cx = 0; cx < INPUT_SIZE; cx++) {
-#pragma HLS pipeline
-        ap_uint<12> rgb = line_buf[cx];
+        axis_data64 pkt;
         pkt.data = rgb.to_uint64();
         pkt.last = (cx == INPUT_SIZE - 1);
         yunet_ins.write(pkt);                
-        // video_buf[cy][cx] = rgb;
+
+        r_sum = 0;
+        g_sum = 0;
+        b_sum = 0;
     }    
 }
 
@@ -295,11 +291,10 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 #pragma HLS array_partition variable=line_sprites complete
 #pragma HLS array_partition variable=sprite_buf complete dim=1
 
-    static LineBuffer line_buf;
     static VideoBuffer video_buf = { 0 };
 
-    // bool line_boundary = true;
     for (uint16_t y = 0; y < HEIGHT; y++) {
+        bool line_boundary = (y & 0x07) == 7;
         // select_line_sprites(detects, detect_count, sprite_data, frame, y, line_sprites, sprite_buf);
         for (uint16_t x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
@@ -315,17 +310,13 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             } else {
                 // set_sprite_pixel(line_sprites, sprite_buf, x, pix);            
             }
-            // if (line_boundary) {
-            //     update_line_buffer(line_buf, x, rbg);
-            // }
+            if (line_boundary) {
+                write_input_line(yunet_ins, video_buf, x, y, rbg);
+            }
             pix.last = (x == WIDTH - 1);
             pix.user = (x == 0 && y == 0);
             pout.write(pix);
         }
-        // line_boundary = ((y & 0x07) == 7);
-        // if (line_boundary) {
-        //     write_input_line(line_buf, yunet_ins, video_buf, y / 8);
-        // }
     }
 
     write_input_padding(yunet_ins);
