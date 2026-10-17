@@ -154,7 +154,7 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], uint8_
     }
 }
 
-void write_input_line(fifo<axis_data64>& yunet_ins, VideoBuffer& video_buf,
+void write_input_line(fifo<axis_data64>& yunet_ins,
     const uint16_t x, const uint16_t y, const ap_uint<24>& rbg)
 {
 #pragma HLS inline
@@ -168,12 +168,12 @@ void write_input_line(fifo<axis_data64>& yunet_ins, VideoBuffer& video_buf,
     b_sum += rbg.range(15, 8);
     if ((x & 0x7) == 7) {
         uint8_t cx = x >> 3;
-        uint8_t cy = y >> 3;
+        // uint8_t cy = y >> 3;
         ap_uint<12> rgb = 0;
         rgb.range(10, 8) = r_sum >> (3+5);
         rgb.range(6, 4) = g_sum >> (3+5);
         rgb.range(2, 0) = b_sum >> (3+5);
-        video_buf[cy][cx] = rgb;
+        // video_buf[cy][cx] = rgb;
 
         axis_data64 pkt;
         pkt.data = rgb.to_uint64();
@@ -291,7 +291,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 #pragma HLS array_partition variable=line_sprites complete
 #pragma HLS array_partition variable=sprite_buf complete dim=1
 
-    static VideoBuffer video_buf = { 0 };
+    // static VideoBuffer video_buf = { 0 };
 
     for (uint16_t y = 0; y < HEIGHT; y++) {
         bool line_boundary = (y & 0x07) == 7;
@@ -301,12 +301,12 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             pixel_t pix = pin.read();
             ap_uint<24> rbg = pix.data;
             if (y >= 630 && x >= 1120) {
-                ap_uint<12> rgb = video_buf[y - 630][x - 1120];
-                rbg = 0;
-                rbg.range(23, 21) = rgb.range(10, 8);
-                rbg.range(15, 13) = rgb.range(6, 4);
-                rbg.range( 7,  5) = rgb.range(2, 0);
-                pix.data = rbg;
+                // ap_uint<12> rgb = video_buf[y - 630][x - 1120];
+                // rbg = 0;
+                // rbg.range(23, 21) = rgb.range(10, 8);
+                // rbg.range(15, 13) = rgb.range(6, 4);
+                // rbg.range( 7,  5) = rgb.range(2, 0);
+                // pix.data = rbg;
             } else {
                 // set_sprite_pixel(line_sprites, sprite_buf, x, pix);            
             }
@@ -314,7 +314,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             pix.user = (x == 0 && y == 0);
             pout.write(pix);
             if (line_boundary) {
-                write_input_line(yunet_ins, video_buf, x, y, rbg);
+                write_input_line(yunet_ins, x, y, rbg);
             }
         }
     }
