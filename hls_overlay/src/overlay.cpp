@@ -301,6 +301,8 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 
     static LineBuffer line_buf[INPUT_SIZE] = { 0 };
     static VideoBuffer video_buf = { 0 };
+#pragma HLS array_partition variable=line_buf complete
+#pragma HLS array_partition variable=video_buf cyclic factor=INPUT_SIZE dim=2
 
     pixel_t pix = pin.read();
     do {
