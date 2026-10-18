@@ -50,3 +50,16 @@ comp.run(operation="PACKAGE")
 
 vitis.dispose()
 
+comp = client.get_component(name="hls_component")
+comp.run(operation="SYNTHESIS")
+
+comp.run(operation="SYNTHESIS")
+
+comp.run(operation="PACKAGE")
+
+comp.run(operation="SYNTHESIS")
+
+comp.run(operation="PACKAGE")
+
+vitis.dispose()
+
