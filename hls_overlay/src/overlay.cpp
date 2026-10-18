@@ -23,9 +23,9 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], uint8_
             ap_uint<8> x2 = outs.read().data;
             ap_uint<8> y2 = outs.read().data;
             detects[i].x1 = x1 * 5 + 240;
-            detects[i].y1 = y1 * 9 / 4;
+            detects[i].y1 = y1 * 9 / 2;
             detects[i].x2 = x2 * 5 + 240;
-            detects[i].y2 = y2 * 9 / 4;
+            detects[i].y2 = y2 * 9 / 2;
             ap_int<8> hi = outs.read().data;
             ap_int<8> lo = outs.read().data;
             // detects[i].score = (hi, lo);
@@ -47,9 +47,8 @@ void update_line_buffer(LineBuffer line_buf[INPUT_SIZE], const uint8_t cx, const
     buf.b_sum += rbg.range(15, 8);
 }
 
-void write_input_line(fifo<axis_data64>& yunet_ins, LineBuffer line_buf[INPUT_SIZE],
-    const uint8_t cy, VideoBuffer& video_buf)
-{
+void write_input_line(fifo<axis_data64>& yunet_ins, LineBuffer line_buf[INPUT_SIZE]) {
+    // const uint8_t cy, VideoBuffer& video_buf) {
 #pragma HLS inline
     for (uint8_t cx = 0; cx < INPUT_SIZE; cx++) {
 #pragma HLS pipeline
@@ -58,7 +57,7 @@ void write_input_line(fifo<axis_data64>& yunet_ins, LineBuffer line_buf[INPUT_SI
         rgb.range(10, 8) = buf.r_sum >> (2 + 2 + 5);
         rgb.range(6, 4) = buf.g_sum >> (2 + 2 + 5);
         rgb.range(2, 0) = buf.b_sum >> (2 + 2 + 5);
-        video_buf[cy][cx] = rgb;
+        // video_buf[cy][cx] = rgb;
 
         axis_data64 pkt;
         pkt.data = rgb.to_uint64();
@@ -71,15 +70,15 @@ void write_input_line(fifo<axis_data64>& yunet_ins, LineBuffer line_buf[INPUT_SI
     }
 }
 
-void set_video_pixel(VideoBuffer& video_buf, const uint8_t cx, const uint8_t cy, pixel_t& pix) {
-#pragma HLS inline
-    ap_uint<12> rgb = video_buf[cy][cx];
-    ap_uint<24> rbg = 0;
-    rbg.range(23, 21) = rgb.range(10, 8);
-    rbg.range(15, 13) = rgb.range(2, 0);
-    rbg.range( 7,  5) = rgb.range(6, 4);
-    pix.data = rbg;
-}
+// void set_video_pixel(VideoBuffer& video_buf, const uint8_t cx, const uint8_t cy, pixel_t& pix) {
+// #pragma HLS inline
+//     ap_uint<12> rgb = video_buf[cy][cx];
+//     ap_uint<24> rbg = 0;
+//     rbg.range(23, 21) = rgb.range(10, 8);
+//     rbg.range(15, 13) = rgb.range(2, 0);
+//     rbg.range( 7,  5) = rgb.range(6, 4);
+//     pix.data = rbg;
+// }
 
 void select_line_sprites(const Detect detects[MAX_DETECTIONS], const uint8_t detect_count,
     const ap_uint<64> sprite_data[SPRITE_LINEBUF_SIZE * SPRITE_SIZE * SPRITE_FRAME_COUNT], const uint8_t frame,
@@ -172,8 +171,8 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 
     static LineBuffer line_buf[INPUT_SIZE] = { 0 };
 #pragma HLS array_partition variable=line_buf complete
-    static VideoBuffer video_buf = { 0 };
-#pragma HLS array_partition variable=video_buf cyclic factor=INPUT_SIZE dim=2
+//     static VideoBuffer video_buf = { 0 };
+// #pragma HLS array_partition variable=video_buf cyclic factor=INPUT_SIZE dim=2
 
     pixel_t pix = pin.read();
     do {
@@ -181,7 +180,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
     } while (!pix.user);
 
     ap_uint<1> phase = 0;
-    uint8_t cy = 0;
+    // uint8_t cy = 0;
     ap_uint<4> cy_count = 4;
     for (uint16_t y = 0; y < HEIGHT; y++) {
         uint8_t cx = 0;
@@ -201,18 +200,17 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
                     cx_count = 5;
                 }
             }
-            if (y >= 560 && x >= 1120) {
-                set_video_pixel(video_buf, x - 1120, y - 560, pix);
-            } else {
-                set_sprite_pixel(line_sprites, sprite_buf, x, pix);
-            }
+            // if (y >= 560 && x >= 1120) {
+            //     set_video_pixel(video_buf, x - 1120, y - 560, pix);
+            // } else {
+            set_sprite_pixel(line_sprites, sprite_buf, x, pix);
             pix.last = (x == WIDTH - 1);
             pix.user = (x == 0 && y == 0);
             pout.write(pix);
         }
         if (--cy_count == 0) {
-            write_input_line(yunet_ins, line_buf, cy, video_buf);
-            cy++;
+            write_input_line(yunet_ins, line_buf);
+            // cy++;
             phase ^= 1;
             cy_count = 4 | phase;
         }
