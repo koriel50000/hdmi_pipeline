@@ -47,14 +47,14 @@ void update_line_buffer(LineBuffer line_buf[INPUT_SIZE], const uint8_t cx, const
     buf.b_sum += rbg.range(15, 8);
 }
 
-void write_input_line(fifo<axis_data64>& yunet_ins, LineBuffer line_buf[INPUT_SIZE]) {
+void write_input_line(fifo<axis_data64>& yunet_ins, LineBuffer line_buf[INPUT_SIZE], const ap_uint<4>& line_boundary) {
 #pragma HLS inline
     for (uint8_t cx = 0; cx < INPUT_SIZE; cx++) {
         LineBuffer& buf = line_buf[cx];
         ap_uint<12> rgb = 0;
-        rgb.range(10, 8) = buf.r_sum >> (6+5);
-        rgb.range(6, 4) = buf.g_sum >> (6+5);
-        rgb.range(2, 0) = buf.b_sum >> (6+5);
+        rgb.range(10, 8) = (buf.r_sum >> 8) / line_boundary;
+        rgb.range(6, 4) = (buf.g_sum >> 8) / line_boundary;
+        rgb.range(2, 0) = (buf.b_sum >> 8) / line_boundary;
 
         axis_data64 pkt;
         pkt.data = rgb.to_uint64();
@@ -65,19 +65,6 @@ void write_input_line(fifo<axis_data64>& yunet_ins, LineBuffer line_buf[INPUT_SI
         buf.g_sum = 0;
         buf.b_sum = 0;
     }
-}
-
-void write_input_padding(fifo<axis_data64>& yunet_ins) {
-#pragma HLS inline
-    axis_data64 pkt;
-    for (uint8_t cy = 0; cy < 70; cy++) {
-        for (uint8_t cx = 0; cx < INPUT_SIZE; cx++) {
-#pragma HLS pipeline
-            pkt.data = 0;
-            pkt.last = (cx == INPUT_SIZE - 1);
-            yunet_ins.write(pkt);            
-        }
-    }    
 }
 
 void select_line_sprites(const Detect detects[MAX_DETECTIONS], const uint8_t detect_count,
@@ -170,15 +157,16 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 #pragma HLS array_partition variable=sprite_buf complete dim=1
 
     static LineBuffer line_buf[INPUT_SIZE] = { 0 };
-#pragma HLS array_partition variable=line_buf complete
+// #pragma HLS array_partition variable=line_buf complete
 
     pixel_t pix = pin.read();
     do {
         pix = pin.read();
     } while (!pix.user);
 
+    ap_uint<4> line_boundary = 4;
+    ap_uint<4> line_count = line_boundary;
     for (uint16_t y = 0; y < HEIGHT; y++) {
-        bool line_boundary = (y & 0x07) == 7;
         select_line_sprites(detects, detect_count, sprite_data, frame, y, line_sprites, sprite_buf);
         for (uint16_t x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
@@ -191,12 +179,14 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             pix.user = (x == 0 && y == 0);
             pout.write(pix);
         }
-        if (line_boundary) {
-            write_input_line(yunet_ins, line_buf);
+        if (--line_count == 0) {
+            write_input_line(yunet_ins, line_buf, line_boundary);
+            line_boundary ^= 1;
+            line_count = line_boundary;
         }
     }
 
-    write_input_padding(yunet_ins);
+    // write_input_padding(yunet_ins);
 
 #pragma HLS dataflow
 
