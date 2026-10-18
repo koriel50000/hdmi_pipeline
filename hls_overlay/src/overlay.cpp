@@ -154,19 +154,22 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], uint8_
     }
 }
 
-void write_input_line(fifo<axis_data64>& yunet_ins, LineBuffer line_buf[INPUT_SIZE], VideoBuffer& video_buf,
-    const uint16_t x, const uint16_t y, const ap_uint<24>& rbg)
+void update_line_buffer(LineBuffer line_buf[INPUT_SIZE], const uint8_t cx, const ap_uint<24>& rbg)
 {
 #pragma HLS inline
-
-    uint8_t cx = x >> 3;
-    uint8_t cy = x >> 3;
     LineBuffer& buf = line_buf[cx];
 
     buf.r_sum += rbg.range(23, 16);
     buf.g_sum += rbg.range(7, 0);
     buf.b_sum += rbg.range(15, 8);
-    if ((y & 0x7) == 7 && (x & 0x7) == 7) {
+}
+
+void write_input_line(fifo<axis_data64>& yunet_ins, LineBuffer line_buf[INPUT_SIZE], const uint8_t cy,
+    VideoBuffer& video_buf)
+{
+#pragma HLS inline
+    for (uint8_t cx = 0; cx < INPUT_SIZE; cx++) {
+        LineBuffer& buf = line_buf[cx];
         ap_uint<12> rgb = 0;
         rgb.range(10, 8) = buf.r_sum >> (6+5);
         rgb.range(6, 4) = buf.g_sum >> (6+5);
@@ -181,12 +184,21 @@ void write_input_line(fifo<axis_data64>& yunet_ins, LineBuffer line_buf[INPUT_SI
         buf.r_sum = 0;
         buf.g_sum = 0;
         buf.b_sum = 0;
-    }    
+    }
+}
+
+void set_video_pixel(VideoBuffer& video_buf, const uint8_t cx, const uint8_t cy, pixel_t& pix) {
+#pragma HLS inline
+    ap_uint<12> rgb = video_buf[cy][cx];
+    ap_uint<24> rbg = 0;
+    rbg.range(23, 21) = rgb.range(10, 8);
+    rbg.range(15, 13) = rgb.range(6, 4);
+    rbg.range( 7,  5) = rgb.range(2, 0);
+    pix.data = rbg;    
 }
 
 void write_input_padding(fifo<axis_data64>& yunet_ins) {
 #pragma HLS inline
-
     axis_data64 pkt;
     for (uint8_t cy = 0; cy < 70; cy++) {
         for (uint8_t cx = 0; cx < INPUT_SIZE; cx++) {
@@ -198,24 +210,12 @@ void write_input_padding(fifo<axis_data64>& yunet_ins) {
     }    
 }
 
-void set_video_pixel(VideoBuffer& video_buf, const uint8_t cx, const uint8_t cy, pixel_t& pix) {
-#pragma HLS inline
-
-    ap_uint<12> rgb = video_buf[cy][cx];
-    ap_uint<24> rbg = 0;
-    rbg.range(23, 21) = rgb.range(10, 8);
-    rbg.range(15, 13) = rgb.range(6, 4);
-    rbg.range( 7,  5) = rgb.range(2, 0);
-    pix.data = rbg;    
-}
-
 void select_line_sprites(const Detect detects[MAX_DETECTIONS], const uint8_t detect_count,
     const ap_uint<64> sprite_data[SPRITE_LINEBUF_SIZE * SPRITE_SIZE * SPRITE_FRAME_COUNT], const uint8_t frame,
     const uint16_t y, LineSprite line_sprites[MAX_LINE_SPRITES],
     ap_uint<2> sprite_buf[MAX_LINE_SPRITES][SPRITE_SIZE])
 {
 #pragma HLS inline
-
     int offset = frame * SPRITE_LINEBUF_SIZE * SPRITE_SIZE;
     int count = 0;
     for (int i = 0; i < MAX_DETECTIONS; i++) {
@@ -257,7 +257,6 @@ void set_sprite_pixel(LineSprite line_sprites[MAX_LINE_SPRITES],
     const uint16_t x, pixel_t& pix)
 {
 #pragma HLS inline
-
     for (int i = 0; i < MAX_LINE_SPRITES; i++) {
 #pragma HLS unroll
         LineSprite& sprite = line_sprites[i];
@@ -309,22 +308,25 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
     } while (!pix.user);
 
     for (uint16_t y = 0; y < HEIGHT; y++) {
+        bool line_boundary = (y & 0x07) == 7;
         select_line_sprites(detects, detect_count, sprite_data, frame, y, line_sprites, sprite_buf);
         for (uint16_t x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
             if (x != 0 || y != 0) {
                 pix = pin.read();
             }
-            ap_uint<24> rbg = pix.data;
+            update_line_buffer(line_buf, x >> 3, pix.data);
             if (y >= 630 && x >= 1120) {
                 set_video_pixel(video_buf, x - 1120, y - 630, pix);
             } else {
                 set_sprite_pixel(line_sprites, sprite_buf, x, pix);            
             }
-            write_input_line(yunet_ins, line_buf, video_buf, x, y, rbg);
             pix.last = (x == WIDTH - 1);
             pix.user = (x == 0 && y == 0);
             pout.write(pix);
+        }
+        if (line_boundary) {
+            write_input_line(yunet_ins, line_buf, y >> 3, video_buf);
         }
     }
 
