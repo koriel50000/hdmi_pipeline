@@ -199,6 +199,9 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
                     cx++;
                     cx_count = 5;
                 }
+            } else {
+                pix.data.range(23, 16) = pix.data.range(7, 0); // g -> r
+                pix.data.range(15, 8) = pix.data.range(7, 0); // g -> b
             }
             // if (y >= 560 && x >= 1120) {
             //     set_video_pixel(video_buf, x - 1120, y - 560, pix);
