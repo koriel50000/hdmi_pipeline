@@ -171,7 +171,7 @@ void select_line_sprites(const Detect detects[MAX_DETECTIONS], const uint8_t det
             if (pitch < 0) pitch = -pitch;
 
             // Yawによる横幅の縮小
-            int32_t width_scale = 256 - yaw * 2;
+            int32_t width_scale = 256 - yaw;
             if (width_scale < 128) width_scale = 128;
 
             // Pitchによる高さの縮小
@@ -194,7 +194,11 @@ void select_line_sprites(const Detect detects[MAX_DETECTIONS], const uint8_t det
                 int32_t roll_offset =
                     -(((int32_t)(2 * y - top - bottom) * detect.roll) >> 9);
 
-                int32_t raw_x1 = cx + roll_offset - width / 2;
+                // Yawによる平行四辺形変形
+                int32_t yaw_offset =
+                    ((int32_t)(2 * y - top - bottom) * detect.yaw) / 512;
+
+                int32_t raw_x1 = cx + roll_offset + yaw_offset - width / 2;
                 int32_t raw_x2 = raw_x1 + width - 1;
 
                 if (raw_x2 >= 0 && raw_x1 < WIDTH) {
@@ -216,11 +220,11 @@ void select_line_sprites(const Detect detects[MAX_DETECTIONS], const uint8_t det
                     sprite.enable = true;
 
                     for (int j = 0; j < SPRITE_LINEBUF_SIZE; j++) {
-#pragma HLS pipeline
+            #pragma HLS pipeline
                         ap_uint<64> data = sprite_data[offset + base * SPRITE_LINEBUF_SIZE + j];
 
                         for (int k = 0; k < 32; k++) {
-#pragma HLS unroll
+            #pragma HLS unroll
                             sprite_buf[count][j * 32 + k] = data.range(k * 2 + 1, k * 2);
                         }
                     }
