@@ -31,7 +31,7 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], uint8_
             // detects[i].score = (hi, lo);
             for (int k = 0; k < 10; k++) {
                 ap_uint<8> kps = outs.read().data;
-                // detects[i].kps[k] = kps * 8;
+                detects[i].kps[k] = kps;
             }
         }
     }
@@ -86,32 +86,81 @@ void select_line_sprites(const Detect detects[MAX_DETECTIONS], const uint8_t det
     ap_uint<2> sprite_buf[MAX_LINE_SPRITES][SPRITE_SIZE])
 {
 #pragma HLS inline
-    int offset = frame * SPRITE_LINEBUF_SIZE * SPRITE_SIZE;
+
+    uint32_t offset = frame * SPRITE_LINEBUF_SIZE * SPRITE_SIZE;
     int count = 0;
+
     for (int i = 0; i < MAX_DETECTIONS; i++) {
         if (i < detect_count && count < MAX_LINE_SPRITES) {
             const Detect& detect = detects[i];
-            if (detect.y1 <= y && y <= detect.y2) {
+
+            int32_t face_h = detect.y2 - detect.y1;
+            int32_t cx = (detect.x1 + detect.x2) >> 1;
+            int32_t cy = (detect.y1 + detect.y2) >> 1;
+
+            int32_t yaw = detect.yaw;
+            int32_t pitch = detect.pitch;
+
+            if (yaw < 0) yaw = -yaw;
+            if (pitch < 0) pitch = -pitch;
+
+            // Yawによる横幅の縮小
+            int32_t width_scale = 256 - yaw * 2;
+            if (width_scale < 128) width_scale = 128;
+
+            // Pitchによる高さの縮小
+            int32_t height_scale = 256 - pitch;
+            if (height_scale < 192) height_scale = 192;
+
+            int32_t width = (face_h * width_scale) >> 8;
+            int32_t height = (face_h * height_scale) >> 8;
+
+            if (width < 1) width = 1;
+            if (height < 1) height = 1;
+
+            int32_t top = cy - height / 2;
+            int32_t bottom = top + height - 1;
+
+            if (top <= y && y <= bottom) {
                 LineSprite& sprite = line_sprites[count];
-                uint16_t size = detect.y2 - detect.y1;
-                uint16_t base = (y - detect.y1) * SPRITE_SIZE / size;
-                uint16_t cx = (detect.x1 + detect.x2) / 2;
-                sprite.x1 = cx - size / 2;
-                sprite.x2 = cx + size / 2;
-                for (int j = 0; j < SPRITE_LINEBUF_SIZE; j++) {
+
+                // Rollによる水平位置の変化
+                int32_t roll_offset =
+                    -(((int32_t)(2 * y - top - bottom) * detect.roll) >> 9);
+
+                int32_t raw_x1 = cx + roll_offset - width / 2;
+                int32_t raw_x2 = raw_x1 + width - 1;
+
+                if (raw_x2 >= 0 && raw_x1 < WIDTH) {
+                    int32_t x1 = raw_x1 < 0 ? 0 : raw_x1;
+                    int32_t x2 = raw_x2 >= WIDTH ? WIDTH - 1 : raw_x2;
+
+                    sprite.x1 = x1;
+                    sprite.x2 = x2;
+
+                    // 縦方向のテクスチャ位置
+                    uint16_t base = (y - top) * SPRITE_SIZE / height;
+
+                    // 横方向のテクスチャ倍率
+                    uint32_t dx = ((uint64_t)SPRITE_SIZE << 16) / width;
+
+                    sprite.src_dx = dx;
+                    sprite.src_x = (x1 - raw_x1) * dx - dx;
+                    sprite.base = base;
+                    sprite.enable = true;
+
+                    for (int j = 0; j < SPRITE_LINEBUF_SIZE; j++) {
 #pragma HLS pipeline
-                    ap_uint<64> data = sprite_data[offset + base * SPRITE_LINEBUF_SIZE + j];
-                    for (int k = 0; k < 32; k++) {
+                        ap_uint<64> data = sprite_data[offset + base * SPRITE_LINEBUF_SIZE + j];
+
+                        for (int k = 0; k < 32; k++) {
 #pragma HLS unroll
-                        sprite_buf[count][j * 32 + k] = data.range(k * 2 + 1, k * 2);
+                            sprite_buf[count][j * 32 + k] = data.range(k * 2 + 1, k * 2);
+                        }
                     }
+
+                    count++;
                 }
-                const uint32_t dx = (SPRITE_SIZE << 16) / size;
-                sprite.src_x = -dx;
-                sprite.src_dx = dx;
-                sprite.base = 0xffff;
-                sprite.enable = true;
-                count++;
             }
         }
     }
@@ -127,17 +176,24 @@ void set_sprite_pixel(LineSprite line_sprites[MAX_LINE_SPRITES],
     const uint16_t x, pixel_t& pix)
 {
 #pragma HLS inline
+
     for (int i = 0; i < MAX_LINE_SPRITES; i++) {
 #pragma HLS unroll
         LineSprite& sprite = line_sprites[i];
+
         if (sprite.enable && sprite.x1 <= x && x <= sprite.x2) {
             sprite.src_x += sprite.src_dx;
-            const uint16_t pos = sprite.src_x >> 16;
-            ap_uint<2> color = sprite_buf[i][pos];
-            if (color == 1) {
-                pix.data = 0x08d64a;
-            } else if (color == 2) {
-                pix.data = 0xf7f7f7;
+
+            int32_t pos = sprite.src_x >> 16;
+
+            if (pos >= 0 && pos < SPRITE_SIZE) {
+                ap_uint<2> color = sprite_buf[i][pos];
+
+                if (color == 1) {
+                    pix.data = 0x08d64a;
+                } else if (color == 2) {
+                    pix.data = 0xf7f7f7;
+                }
             }
         }
     }
