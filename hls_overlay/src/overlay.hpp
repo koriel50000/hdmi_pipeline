@@ -33,15 +33,15 @@ struct Detect {
     uint16_t x2;
     uint16_t y2;
     // uint16_t score;
-    uint8_t kps[10];
-    int16_t yaw, pitch, roll;
+    // uint16_t kps[10];
 };
 
 struct LineSprite {
-    int16_t x1;
-    int16_t x2;
+    uint16_t x1;
+    uint16_t x2;
     int32_t src_x;
     uint32_t src_dx;
+    uint64_t base;
     bool enable;
 };
 

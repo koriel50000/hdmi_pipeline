@@ -12,58 +12,6 @@ void write_params(const ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& yune
     }
 }
 
-void calculate_face_pitch(Detect& d) {
-#pragma HLS inline
-
-    int32_t lx = d.kps[0];
-    int32_t ly = d.kps[1];
-    int32_t rx = d.kps[2];
-    int32_t ry = d.kps[3];
-
-    int32_t mlx = d.kps[6];
-    int32_t mly = d.kps[7];
-    int32_t mrx = d.kps[8];
-    int32_t mry = d.kps[9];
-
-    if (lx > rx) {
-        int32_t tmp = lx; lx = rx; rx = tmp;
-        tmp = ly; ly = ry; ry = tmp;
-        tmp = mlx; mlx = mrx; mrx = tmp;
-        tmp = mly; mly = mry; mry = tmp;
-    }
-
-    int32_t ex = (lx + rx) >> 1;
-    int32_t ey = (ly + ry) >> 1;
-    int32_t mx = (mlx + mrx) >> 1;
-    int32_t my = (mly + mry) >> 1;
-
-    int32_t vx = mx - ex;
-    int32_t vy = my - ey;
-
-    int32_t nx = d.kps[4];
-    int32_t ny = d.kps[5];
-
-    int32_t expected_x = ex + (vx * 3) / 5;
-    int32_t expected_y = ey + (vy * 3) / 5;
-
-    int32_t dx = nx - expected_x;
-    int32_t dy = ny - expected_y;
-
-    int32_t v2 = vx * vx + vy * vy;
-
-    if (v2 < 16) {
-        d.pitch = 0;
-        return;
-    }
-
-    int32_t pitch = ((dx * vx + dy * vy) << 8) / v2;
-
-    if (pitch > 64) pitch = 64;
-    if (pitch < -64) pitch = -64;
-
-    d.pitch = pitch;
-}
-
 void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], uint8_t& detect_count) {
     detect_count = outs.read().data;
 
@@ -83,9 +31,8 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], uint8_
             // detects[i].score = (hi, lo);
             for (int k = 0; k < 10; k++) {
                 ap_uint<8> kps = outs.read().data;
-                detects[i].kps[k] = kps;
+                // detects[i].kps[k] = kps * 8;
             }
-            calculate_face_pitch(detects[i]);
         }
     }
 }
@@ -134,81 +81,37 @@ void write_input_line(fifo<axis_data64>& yunet_ins, LineBuffer line_buf[INPUT_SI
 // }
 
 void select_line_sprites(const Detect detects[MAX_DETECTIONS], const uint8_t detect_count,
-    const ap_uint<64> sprite_data[SPRITE_LINEBUF_SIZE * SPRITE_SIZE * SPRITE_FRAME_COUNT],
-    const uint8_t frame, const uint16_t y,
-    LineSprite line_sprites[MAX_LINE_SPRITES],
+    const ap_uint<64> sprite_data[SPRITE_LINEBUF_SIZE * SPRITE_SIZE * SPRITE_FRAME_COUNT], const uint8_t frame,
+    const uint16_t y, LineSprite line_sprites[MAX_LINE_SPRITES],
     ap_uint<2> sprite_buf[MAX_LINE_SPRITES][SPRITE_SIZE])
 {
 #pragma HLS inline
-
-    uint32_t offset = frame * SPRITE_LINEBUF_SIZE * SPRITE_SIZE;
+    int offset = frame * SPRITE_LINEBUF_SIZE * SPRITE_SIZE;
     int count = 0;
-
     for (int i = 0; i < MAX_DETECTIONS; i++) {
         if (i < detect_count && count < MAX_LINE_SPRITES) {
             const Detect& detect = detects[i];
-
-            int32_t face_h = detect.y2 - detect.y1;
-            if (face_h <= 0) continue;
-
-            int32_t cx = (detect.x1 + detect.x2) >> 1;
-            int32_t cy = (detect.y1 + detect.y2) >> 1;
-
-            int32_t pitch = detect.pitch;
-
-            if (pitch > 64) pitch = 64;
-            if (pitch < -64) pitch = -64;
-
-            int32_t top = cy - face_h / 2;
-            int32_t bottom = top + face_h - 1;
-
-            if (top <= y && y <= bottom) {
+            if (detect.y1 <= y && y <= detect.y2) {
                 LineSprite& sprite = line_sprites[count];
-
-                // 顔の中心からの垂直距離
-                int32_t row = 2 * (int32_t)y - top - bottom;
-
-                // 上下方向の元画像参照位置
-                int32_t base = ((int32_t)(y - top) * SPRITE_SIZE) / face_h
-                    - ((int64_t)row * pitch * SPRITE_SIZE) / (face_h * 512);
-                if (base < 0) base = 0;
-                if (base >= SPRITE_SIZE) base = SPRITE_SIZE - 1;
-
-                // Pitchによる横方向の拡縮
-                int32_t width_scale = 256 + (row * pitch * 2) / face_h;
-
-                int32_t line_width = (face_h * width_scale) >> 8;
-                if (line_width < 1) line_width = 1;
-
-                // 顔の中心を基準に横幅を変更
-                int32_t raw_x1 = cx - line_width / 2;
-                int32_t raw_x2 = raw_x1 + line_width - 1;
-
-                if (raw_x2 >= 0 && raw_x1 < WIDTH) {
-                    int32_t x1 = raw_x1 < 0 ? 0 : raw_x1;
-                    int32_t x2 = raw_x2 >= WIDTH ? WIDTH - 1 : raw_x2;
-                    sprite.x1 = x1;
-                    sprite.x2 = x2;
-
-                    // 横方向の元画像参照倍率
-                    sprite.src_dx = ((uint64_t)SPRITE_SIZE << 16) / line_width;
-                    sprite.src_x = (x1 - raw_x1) * (int32_t)sprite.src_dx - (int32_t)sprite.src_dx;
-                    sprite.enable = true;
-
-                    // 元画像の1ラインをDDRから読み込む
-                    for (int j = 0; j < SPRITE_LINEBUF_SIZE; j++) {
-#pragma HLS pipeline II=1
-                        ap_uint<64> data =
-                            sprite_data[offset + base * SPRITE_LINEBUF_SIZE + j];
-
-                        for (int k = 0; k < 32; k++) {
+                uint16_t size = detect.y2 - detect.y1;
+                uint16_t base = (y - detect.y1) * SPRITE_SIZE / size;
+                uint16_t cx = (detect.x1 + detect.x2) / 2;
+                sprite.x1 = cx - size / 2;
+                sprite.x2 = cx + size / 2;
+                for (int j = 0; j < SPRITE_LINEBUF_SIZE; j++) {
+#pragma HLS pipeline
+                    ap_uint<64> data = sprite_data[offset + base * SPRITE_LINEBUF_SIZE + j];
+                    for (int k = 0; k < 32; k++) {
 #pragma HLS unroll
-                            sprite_buf[count][j * 32 + k] =
-                                data.range(k * 2 + 1, k * 2);
-                        }
+                        sprite_buf[count][j * 32 + k] = data.range(k * 2 + 1, k * 2);
                     }
-                    count++;
                 }
+                const uint32_t dx = (SPRITE_SIZE << 16) / size;
+                sprite.src_x = -dx;
+                sprite.src_dx = dx;
+                sprite.base = 0xffff;
+                sprite.enable = true;
+                count++;
             }
         }
     }
@@ -224,24 +127,17 @@ void set_sprite_pixel(LineSprite line_sprites[MAX_LINE_SPRITES],
     const uint16_t x, pixel_t& pix)
 {
 #pragma HLS inline
-
     for (int i = 0; i < MAX_LINE_SPRITES; i++) {
 #pragma HLS unroll
         LineSprite& sprite = line_sprites[i];
-
         if (sprite.enable && sprite.x1 <= x && x <= sprite.x2) {
             sprite.src_x += sprite.src_dx;
-
-            int32_t pos = sprite.src_x >> 16;
-
-            if (pos >= 0 && pos < SPRITE_SIZE) {
-                ap_uint<2> color = sprite_buf[i][pos];
-
-                if (color == 1) {
-                    pix.data = 0x08d64a;
-                } else if (color == 2) {
-                    pix.data = 0xf7f7f7;
-                }
+            const uint16_t pos = sprite.src_x >> 16;
+            ap_uint<2> color = sprite_buf[i][pos];
+            if (color == 1) {
+                pix.data = 0x08d64a;
+            } else if (color == 2) {
+                pix.data = 0xf7f7f7;
             }
         }
     }
