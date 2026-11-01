@@ -12,14 +12,14 @@ void write_params(const ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& yune
     }
 }
 
-void calculate_face_pose(Detect& d)
-{
+void calculate_face_pitch(Detect& d) {
 #pragma HLS inline
 
     int32_t lx = d.kps[0];
     int32_t ly = d.kps[1];
     int32_t rx = d.kps[2];
     int32_t ry = d.kps[3];
+
     int32_t mlx = d.kps[6];
     int32_t mly = d.kps[7];
     int32_t mrx = d.kps[8];
@@ -37,8 +37,6 @@ void calculate_face_pose(Detect& d)
     int32_t mx = (mlx + mrx) >> 1;
     int32_t my = (mly + mry) >> 1;
 
-    int32_t hx = (rx - lx) + (mrx - mlx);
-    int32_t hy = (ry - ly) + (mry - mly);
     int32_t vx = mx - ex;
     int32_t vy = my - ey;
 
@@ -51,30 +49,19 @@ void calculate_face_pose(Detect& d)
     int32_t dx = nx - expected_x;
     int32_t dy = ny - expected_y;
 
-    int32_t h2 = hx * hx + hy * hy;
     int32_t v2 = vx * vx + vy * vy;
 
-    if (h2 < 16 || v2 < 16 || hx == 0) {
-        d.yaw = 0;
+    if (v2 < 16) {
         d.pitch = 0;
-        d.roll = 0;
         return;
     }
 
-    int32_t yaw = ((dx * hx + dy * hy) << 8) / h2;
     int32_t pitch = ((dx * vx + dy * vy) << 8) / v2;
-    int32_t roll = (hy * 230) / hx;
 
-    if (yaw > 128) yaw = 128;
-    if (yaw < -128) yaw = -128;
     if (pitch > 64) pitch = 64;
     if (pitch < -64) pitch = -64;
-    if (roll > 128) roll = 128;
-    if (roll < -128) roll = -128;
 
-    d.yaw = yaw;
     d.pitch = pitch;
-    d.roll = roll;
 }
 
 void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], uint8_t& detect_count) {
@@ -98,7 +85,7 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], uint8_
                 ap_uint<8> kps = outs.read().data;
                 detects[i].kps[k] = kps;
             }
-            calculate_face_pose(detects[i]);
+            calculate_face_pitch(detects[i]);
         }
     }
 }
@@ -147,8 +134,10 @@ void write_input_line(fifo<axis_data64>& yunet_ins, LineBuffer line_buf[INPUT_SI
 // }
 
 void select_line_sprites(const Detect detects[MAX_DETECTIONS], const uint8_t detect_count,
+    const ap_uint<64> sprite_data[SPRITE_LINEBUF_SIZE * SPRITE_SIZE * SPRITE_FRAME_COUNT],
     const uint8_t frame, const uint16_t y,
-    LineSprite line_sprites[MAX_LINE_SPRITES])
+    LineSprite line_sprites[MAX_LINE_SPRITES],
+    ap_uint<2> sprite_buf[MAX_LINE_SPRITES][SPRITE_SIZE])
 {
 #pragma HLS inline
 
@@ -160,76 +149,64 @@ void select_line_sprites(const Detect detects[MAX_DETECTIONS], const uint8_t det
             const Detect& detect = detects[i];
 
             int32_t face_h = detect.y2 - detect.y1;
+            if (face_h <= 0) continue;
+
             int32_t cx = (detect.x1 + detect.x2) >> 1;
             int32_t cy = (detect.y1 + detect.y2) >> 1;
 
-            int32_t yaw = detect.yaw;
             int32_t pitch = detect.pitch;
 
-            if (yaw > 128) yaw = 128;
-            if (yaw < -128) yaw = -128;
             if (pitch > 64) pitch = 64;
             if (pitch < -64) pitch = -64;
 
-            // Yawによる横幅の縮小
-            int32_t width_scale = 256 - (abs(yaw) * 128 / 128);
-            if (width_scale < 128) width_scale = 128;
-
-            // Pitchによる高さの縮小
-            int32_t height_scale = 256 - (abs(pitch) * 64 / 64);
-            if (height_scale < 128) height_scale = 128;
-
-            int32_t width = (face_h * width_scale) >> 8;
-            int32_t height = (face_h * height_scale) >> 8;
-
-            if (width < 1) width = 1;
-            if (height < 1) height = 1;
-
-            int32_t top = cy - height / 2;
-            int32_t bottom = top + height - 1;
+            int32_t top = cy - face_h / 2;
+            int32_t bottom = top + face_h - 1;
 
             if (top <= y && y <= bottom) {
                 LineSprite& sprite = line_sprites[count];
 
+                // 顔の中心からの垂直距離
                 int32_t row = 2 * (int32_t)y - top - bottom;
 
-                // Yawによる左右方向のシフト
-                int32_t yaw_offset = (row * yaw) >> 9;
+                // 上下方向の元画像参照位置
+                int32_t base = ((int32_t)(y - top) * SPRITE_SIZE) / face_h
+                    + ((int64_t)row * pitch * SPRITE_SIZE) / (face_h * 512);
+                if (base < 0) base = 0;
+                if (base >= SPRITE_SIZE) base = SPRITE_SIZE - 1;
 
-                // Pitchによる上下方向の位置調整
-                int32_t pitch_offset = (pitch * face_h) >> 9;
+                // Pitchによる横方向の拡縮
+                int32_t width_scale = 256 + (row * pitch * 2) / face_h;
 
-                int32_t raw_x1 = cx + yaw_offset - width / 2;
-                int32_t raw_x2 = raw_x1 + width - 1;
+                int32_t line_width = (face_h * width_scale) >> 8;
+                if (line_width < 1) line_width = 1;
+
+                // 顔の中心を基準に横幅を変更
+                int32_t raw_x1 = cx - line_width / 2;
+                int32_t raw_x2 = raw_x1 + line_width - 1;
 
                 if (raw_x2 >= 0 && raw_x1 < WIDTH) {
                     int32_t x1 = raw_x1 < 0 ? 0 : raw_x1;
                     int32_t x2 = raw_x2 >= WIDTH ? WIDTH - 1 : raw_x2;
-
                     sprite.x1 = x1;
                     sprite.x2 = x2;
 
-                    // Pitchによる上下方向の変形
-                    int32_t pitch_warp = (row * pitch * SPRITE_SIZE) / (face_h * 512);
-
-                    // 元画像のY座標
-                    int32_t base = ((int32_t)(y - top) * SPRITE_SIZE) / height + pitch_warp;
-
-                    if (base < 0) base = 0;
-                    if (base >= SPRITE_SIZE) base = SPRITE_SIZE - 1;
-
-                    // 元画像のX方向倍率
-                    sprite.src_dx = ((uint64_t)SPRITE_SIZE << 16) / width;
-                    sprite.src_x = (x1 - raw_x1) * sprite.src_dx - sprite.src_dx;
-
-                    // DDR上の64ビットワードアドレス
-                    sprite.base = offset + base * SPRITE_LINEBUF_SIZE;
-
-                    // キャッシュを無効化
-                    sprite.cached_index = 0xffff;
-
+                    // 横方向の元画像参照倍率
+                    sprite.src_dx = ((uint64_t)SPRITE_SIZE << 16) / line_width;
+                    sprite.src_x = (x1 - raw_x1) * (int32_t)sprite.src_dx - (int32_t)sprite.src_dx;
                     sprite.enable = true;
 
+                    // 元画像の1ラインをDDRから読み込む
+                    for (int j = 0; j < SPRITE_LINEBUF_SIZE; j++) {
+#pragma HLS pipeline II=1
+                        ap_uint<64> data =
+                            sprite_data[offset + base * SPRITE_LINEBUF_SIZE + j];
+
+                        for (int k = 0; k < 32; k++) {
+#pragma HLS unroll
+                            sprite_buf[count][j * 32 + k] =
+                                data.range(k * 2 + 1, k * 2);
+                        }
+                    }
                     count++;
                 }
             }
@@ -243,7 +220,7 @@ void select_line_sprites(const Detect detects[MAX_DETECTIONS], const uint8_t det
 }
 
 void set_sprite_pixel(LineSprite line_sprites[MAX_LINE_SPRITES],
-    const ap_uint<64> sprite_data[SPRITE_LINEBUF_SIZE * SPRITE_SIZE * SPRITE_FRAME_COUNT],
+    const ap_uint<2> sprite_buf[MAX_LINE_SPRITES][SPRITE_SIZE],
     const uint16_t x, pixel_t& pix)
 {
 #pragma HLS inline
@@ -258,16 +235,7 @@ void set_sprite_pixel(LineSprite line_sprites[MAX_LINE_SPRITES],
             int32_t pos = sprite.src_x >> 16;
 
             if (pos >= 0 && pos < SPRITE_SIZE) {
-                uint16_t index = pos >> 5;
-
-                // 64ビットワードのキャッシュ
-                if (sprite.cached_index != index) {
-                    sprite.cached_data = sprite_data[sprite.base + index];
-                    sprite.cached_index = index;
-                }
-
-                ap_uint<2> color =
-                    (sprite.cached_data >> ((pos & 31) << 1));
+                ap_uint<2> color = sprite_buf[i][pos];
 
                 if (color == 1) {
                     pix.data = 0x08d64a;
@@ -300,10 +268,10 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
 // #pragma HLS bind_storage variable=detects type=ram_1p impl=lutram
 
     static LineSprite line_sprites[MAX_LINE_SPRITES];
-//     static ap_uint<2> sprite_buf[MAX_LINE_SPRITES][SPRITE_SIZE];
-// #pragma HLS bind_storage variable=sprite_buf type=ram_1p impl=lutram
+    static ap_uint<2> sprite_buf[MAX_LINE_SPRITES][SPRITE_SIZE];
+#pragma HLS bind_storage variable=sprite_buf type=ram_1p impl=lutram
 #pragma HLS array_partition variable=line_sprites complete
-// #pragma HLS array_partition variable=sprite_buf complete dim=1
+#pragma HLS array_partition variable=sprite_buf complete dim=1
 
     static LineBuffer line_buf[INPUT_SIZE] = { 0 };
 #pragma HLS array_partition variable=line_buf complete
@@ -321,7 +289,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
     for (uint16_t y = 0; y < HEIGHT; y++) {
         uint8_t cx = 0;
         ap_uint<4> cx_count = 5;
-        select_line_sprites(detects, detect_count, frame, y, line_sprites);
+        select_line_sprites(detects, detect_count, sprite_data, frame, y, line_sprites, sprite_buf);
         for (uint16_t x = 0; x < WIDTH; x++) {
 #pragma HLS pipeline
             if (x != 0 || y != 0) {
@@ -342,7 +310,7 @@ void pattern_overlay(fifo<pixel_t>& pin, fifo<pixel_t>& pout,
             // if (y >= 560 && x >= 1120) {
             //     set_video_pixel(video_buf, x - 1120, y - 560, pix);
             // } else {
-            set_sprite_pixel(line_sprites, sprite_data, x, pix);
+            set_sprite_pixel(line_sprites, sprite_buf, x, pix);
             pix.last = (x == WIDTH - 1);
             pix.user = (x == 0 && y == 0);
             pout.write(pix);

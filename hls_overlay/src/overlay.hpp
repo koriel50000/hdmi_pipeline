@@ -42,9 +42,6 @@ struct LineSprite {
     int16_t x2;
     int32_t src_x;
     uint32_t src_dx;
-    uint32_t base;
-    uint16_t cached_index;
-    ap_uint<64> cached_data;
     bool enable;
 };
 
