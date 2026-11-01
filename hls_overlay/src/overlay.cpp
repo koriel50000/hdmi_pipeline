@@ -12,6 +12,71 @@ void write_params(const ap_uint<64> params[PARAM_COUNT], fifo<axis_data64>& yune
     }
 }
 
+void calculate_face_pose(Detect& d)
+{
+#pragma HLS inline
+
+    int32_t lx = d.kps[0];
+    int32_t ly = d.kps[1];
+    int32_t rx = d.kps[2];
+    int32_t ry = d.kps[3];
+    int32_t mlx = d.kps[6];
+    int32_t mly = d.kps[7];
+    int32_t mrx = d.kps[8];
+    int32_t mry = d.kps[9];
+
+    if (lx > rx) {
+        int32_t tmp = lx; lx = rx; rx = tmp;
+        tmp = ly; ly = ry; ry = tmp;
+        tmp = mlx; mlx = mrx; mrx = tmp;
+        tmp = mly; mly = mry; mry = tmp;
+    }
+
+    int32_t ex = (lx + rx) >> 1;
+    int32_t ey = (ly + ry) >> 1;
+    int32_t mx = (mlx + mrx) >> 1;
+    int32_t my = (mly + mry) >> 1;
+
+    int32_t hx = (rx - lx) + (mrx - mlx);
+    int32_t hy = (ry - ly) + (mry - mly);
+    int32_t vx = mx - ex;
+    int32_t vy = my - ey;
+
+    int32_t nx = d.kps[4];
+    int32_t ny = d.kps[5];
+
+    int32_t expected_x = ex + (vx * 3) / 5;
+    int32_t expected_y = ey + (vy * 3) / 5;
+
+    int32_t dx = nx - expected_x;
+    int32_t dy = ny - expected_y;
+
+    int32_t h2 = hx * hx + hy * hy;
+    int32_t v2 = vx * vx + vy * vy;
+
+    if (h2 < 16 || v2 < 16 || hx == 0) {
+        d.yaw = 0;
+        d.pitch = 0;
+        d.roll = 0;
+        return;
+    }
+
+    int32_t yaw = ((dx * hx + dy * hy) << 8) / h2;
+    int32_t pitch = ((dx * vx + dy * vy) << 8) / v2;
+    int32_t roll = (hy * 230) / hx;
+
+    if (yaw > 128) yaw = 128;
+    if (yaw < -128) yaw = -128;
+    if (pitch > 64) pitch = 64;
+    if (pitch < -64) pitch = -64;
+    if (roll > 128) roll = 128;
+    if (roll < -128) roll = -128;
+
+    d.yaw = yaw;
+    d.pitch = pitch;
+    d.roll = roll;
+}
+
 void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], uint8_t& detect_count) {
     detect_count = outs.read().data;
 
@@ -33,6 +98,7 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], uint8_
                 ap_uint<8> kps = outs.read().data;
                 detects[i].kps[k] = kps;
             }
+            calculate_face_pose(detects[i]);
         }
     }
 }
