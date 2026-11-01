@@ -170,7 +170,7 @@ void select_line_sprites(const Detect detects[MAX_DETECTIONS], const uint8_t det
 
                 // 上下方向の元画像参照位置
                 int32_t base = ((int32_t)(y - top) * SPRITE_SIZE) / face_h
-                    + ((int64_t)row * pitch * SPRITE_SIZE) / (face_h * 512);
+                    - ((int64_t)row * pitch * SPRITE_SIZE) / (face_h * 512);
                 if (base < 0) base = 0;
                 if (base >= SPRITE_SIZE) base = SPRITE_SIZE - 1;
 
