@@ -28,20 +28,20 @@ template <typename T>
 using fifo = hls::stream<T>;
 
 struct Detect {
-    uint16_t x1;
-    uint16_t y1;
-    uint16_t x2;
-    uint16_t y2;
-    // uint16_t score;
-    // uint16_t kps[10];
+    int16_t x1;
+    int16_t y1;
+    int16_t x2;
+    int16_t y2;
+    int16_t pitch;
+    int32_t src_y;
+    int32_t src_dy;
 };
 
 struct LineSprite {
-    uint16_t x1;
-    uint16_t x2;
+    int16_t x1;
+    int16_t x2;
     int32_t src_x;
-    uint32_t src_dx;
-    uint64_t base;
+    int32_t src_dx;
     bool enable;
 };
 
