@@ -48,7 +48,7 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], uint8_
             detect.y1 = y1 * 9 / 2;
             detect.x2 = x2 * 5 + 240;
             detect.y2 = y2 * 9 / 2;
-            detect.pitch = pitch;
+            detect.pitch = pitch * 9 / 2;
             detect.src_dy = ((SPRITE_SIZE - 1) << 16) / (detect.y2 - detect.y1);
             detect.src_y = -detect.src_dy;
         }
