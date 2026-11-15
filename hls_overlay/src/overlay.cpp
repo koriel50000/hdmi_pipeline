@@ -153,11 +153,12 @@ void set_sprite_pixel(LineSprite line_sprites[MAX_LINE_SPRITES],
             sprite.src_x += sprite.src_dx;
             const uint16_t col = sprite.src_x >> 16;
             ap_uint<2> color = sprite_buf[i][col];
-            if (color == 1) {
-                pix.data = 0x08d64a;
-            } else if (color == 2) {
-                pix.data = 0xf7f7f7;
-            }
+            // if (color == 1) {
+            //     pix.data = 0x08d64a;
+            // } else if (color == 2) {
+            //     pix.data = 0xf7f7f7;
+            // }
+            pix.data = 0xff0000;
         }
     }
 }
