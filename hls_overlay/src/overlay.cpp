@@ -48,7 +48,7 @@ void read_detects(fifo<axis_data8>& outs, Detect detects[MAX_DETECTIONS], uint8_
             detect.y1 = y1 * 9 / 2;
             detect.x2 = x2 * 5 + 240;
             detect.y2 = y2 * 9 / 2;
-            detect.pitch = pitch * 9 / 2;
+            detect.scale = pitch * 9 / 2;
             detect.src_dy = ((SPRITE_SIZE - 1) << 16) / (detect.y2 - detect.y1);
             detect.src_y = -detect.src_dy;
         }
@@ -115,7 +115,7 @@ void select_line_sprites(Detect detects[MAX_DETECTIONS], const uint8_t detect_co
                 detect.src_y += detect.src_dy;
                 const uint16_t row = detect.src_y >> 16;
                 // 横方向の縮小
-                int16_t resize = detect.pitch * (SPRITE_SIZE / 2 - row) / SPRITE_SIZE;
+                int16_t resize = detect.scale * (SPRITE_SIZE / 2 - row) / SPRITE_SIZE;
                 sprite.x1 = detect.x1 - resize;
                 sprite.x2 = detect.x2 + resize;
                 sprite.src_dx = ((SPRITE_SIZE - 1) << 16) / (sprite.x2 - sprite.x1);
@@ -153,12 +153,11 @@ void set_sprite_pixel(LineSprite line_sprites[MAX_LINE_SPRITES],
             sprite.src_x += sprite.src_dx;
             const uint16_t col = sprite.src_x >> 16;
             ap_uint<2> color = sprite_buf[i][col];
-            // if (color == 1) {
-            //     pix.data = 0x08d64a;
-            // } else if (color == 2) {
-            //     pix.data = 0xf7f7f7;
-            // }
-            pix.data = 0xff0000;
+            if (color == 1) {
+                pix.data = 0x08d64a;
+            } else if (color == 2) {
+                pix.data = 0xf7f7f7;
+            }
         }
     }
 }

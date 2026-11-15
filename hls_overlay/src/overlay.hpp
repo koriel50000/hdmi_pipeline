@@ -32,7 +32,7 @@ struct Detect {
     int16_t y1;
     int16_t x2;
     int16_t y2;
-    int16_t pitch;
+    int16_t scale;
     int32_t src_y;
     int32_t src_dy;
 };
